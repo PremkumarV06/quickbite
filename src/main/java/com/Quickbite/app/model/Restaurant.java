@@ -29,4 +29,29 @@ public class Restaurant {
 
     @Column(name = "image_url")
     private String imageUrl;
+
+    @Column(name = "logo_url")
+    private String logoUrl;
+
+    @Column(name = "banner_url")
+    private String bannerUrl;
+
+    private Double rating;
+
+    @Column(name = "reviews_count")
+    private Integer reviewsCount;
+
+    @Column(name = "delivery_time")
+    private Integer deliveryTime;
+
+    @Column(name = "delivery_fee")
+    private Double deliveryFee;
+
+    private String offers;
+
+    @Column(name = "is_open")
+    private Boolean isOpen = true;
+
+    @Column(name = "min_order")
+    private Double minOrder;
 }

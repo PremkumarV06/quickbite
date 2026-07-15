@@ -24,7 +24,16 @@ CREATE TABLE restaurants (
     cuisine VARCHAR(100) NOT NULL,
     address VARCHAR(255) NOT NULL,
     phone VARCHAR(20) NOT NULL,
-    image_url VARCHAR(255)
+    image_url VARCHAR(255),
+    logo_url VARCHAR(255),
+    banner_url VARCHAR(255),
+    rating DECIMAL(3,2) DEFAULT 4.0,
+    reviews_count INT DEFAULT 50,
+    delivery_time INT DEFAULT 30,
+    delivery_fee DECIMAL(10,2) DEFAULT 20.00,
+    offers VARCHAR(255) DEFAULT '',
+    is_open BOOLEAN NOT NULL DEFAULT TRUE,
+    min_order DECIMAL(10,2) DEFAULT 100.00
 );
 
 -- 3. Menu Items Table
@@ -32,11 +41,25 @@ CREATE TABLE menu_items (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     restaurant_id BIGINT NOT NULL,
     name VARCHAR(100) NOT NULL,
-    description VARCHAR(255),
+    description VARCHAR(500),
     price DECIMAL(10,2) NOT NULL,
-    category VARCHAR(50) NOT NULL, -- Appetizer, Main Course, Dessert, Beverage, etc.
+    category VARCHAR(50) NOT NULL,
     image_url VARCHAR(255),
     available BOOLEAN NOT NULL DEFAULT TRUE,
+    rating DECIMAL(3,2) DEFAULT 4.0,
+    reviews_count INT DEFAULT 20,
+    is_veg BOOLEAN NOT NULL DEFAULT TRUE,
+    ingredients VARCHAR(1000) DEFAULT '',
+    calories INT DEFAULT 300,
+    protein INT DEFAULT 10,
+    carbs INT DEFAULT 40,
+    fat INT DEFAULT 10,
+    prep_time INT DEFAULT 20,
+    recommended_sides VARCHAR(500) DEFAULT '',
+    region VARCHAR(100) DEFAULT 'Traditional',
+    spice_level VARCHAR(20) DEFAULT 'Medium',
+    cooking_time INT DEFAULT 15,
+    multiple_images VARCHAR(1000) DEFAULT '',
     FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE
 );
 

@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickBite | Premium Food Delivery & Tracking</title>
+    <title>QuickBite | Order Food Online - Tamil Nadu's Best Food Delivery</title>
+    <meta name="description" content="Order authentic Tamil Nadu food, Biryani, Pizza, Burgers from top restaurants in Coimbatore. Fast delivery from Domino's, KFC, Annapoorna, Junior Kuppanna and more.">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,404 +15,693 @@
     <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
-    <!-- Premium Toast Notifications -->
+    <!-- Toast Notifications -->
     <div id="toast-container"></div>
 
-    <!-- Navigation Header -->
-    <header class="app-header">
+    <!-- ===== HEADER ===== -->
+    <header class="app-header" id="app-header">
         <div class="header-container">
+            <!-- Logo -->
             <a href="#" class="app-logo" id="logo-btn">
                 <i class="fa-solid fa-bolt logo-icon"></i>
                 <span>Quick<span>Bite</span></span>
             </a>
-            
-            <nav class="nav-links" id="main-nav">
-                <!-- Links dynamically inserted based on auth state -->
-            </nav>
 
+            <!-- Location Selector -->
+            <div class="location-selector" id="location-selector-btn" title="Change delivery location">
+                <i class="fa-solid fa-location-dot location-icon"></i>
+                <div class="location-text">
+                    <span class="location-label">Delivering to</span>
+                    <span class="location-city" id="location-display">Coimbatore, TN</span>
+                </div>
+                <i class="fa-solid fa-chevron-down location-caret"></i>
+            </div>
+
+            <!-- Search Bar (desktop) -->
+            <div class="header-search" id="header-search-wrap">
+                <i class="fa-solid fa-magnifying-glass search-icon-hdr"></i>
+                <input type="text" id="header-search-input" class="header-search-input" placeholder="Search for restaurants, cuisines or dishes...">
+                <div class="search-suggestions-box" id="search-suggestions-box"></div>
+            </div>
+
+            <!-- Nav Links -->
+            <nav class="nav-links" id="main-nav"></nav>
+
+            <!-- Header Actions -->
             <div class="header-actions">
-                <div class="user-profile-badge" id="profile-badge" style="display: none;">
+                <button class="icon-btn" id="theme-toggle" title="Toggle Theme">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+                <button class="icon-btn" id="wishlist-toggle-btn" title="Favourites">
+                    <i class="fa-solid fa-heart"></i>
+                </button>
+                <div class="user-profile-badge" id="profile-badge" style="display:none;">
                     <i class="fa-solid fa-user-circle user-avatar"></i>
                     <span id="user-display-name">Guest</span>
                     <span class="role-pill" id="user-display-role">CUSTOMER</span>
                 </div>
-                <button class="cart-btn" id="cart-toggle-btn" style="display: none;">
+                <button class="cart-btn" id="cart-toggle-btn">
                     <i class="fa-solid fa-bag-shopping"></i>
                     <span class="cart-count" id="cart-badge">0</span>
                 </button>
-                <button class="btn btn-primary" id="login-nav-btn">
-                    <i class="fa-solid fa-arrow-right-to-bracket"></i> Login
+                <button class="btn btn-primary btn-sm" id="login-nav-btn">
+                    <i class="fa-solid fa-user"></i> Sign In
                 </button>
-                <button class="btn btn-outline" id="logout-btn" style="display: none;">
-                    <i class="fa-solid fa-power-off"></i> Logout
+                <button class="btn btn-outline btn-sm" id="logout-btn" style="display:none;">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
                 </button>
             </div>
+        </div>
+        <!-- Guest info bar -->
+        <div class="guest-info-bar" id="guest-cart-info" style="display:none;">
+            <i class="fa-solid fa-circle-info"></i>
+            You are browsing as a guest. Sign in only when you checkout.
         </div>
     </header>
 
-    <!-- Main Container -->
-    <main class="app-content">
-        <!-- 1. Landing/Hero Section -->
+    <!-- ===== LOCATION MODAL ===== -->
+    <div class="modal-overlay" id="location-modal">
+        <div class="modal-card modal-sm">
+            <button class="modal-close-btn" id="location-modal-close"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-location-dot text-primary"></i> Change Location</h3>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Your Delivery City</label>
+                    <input type="text" id="location-input" class="form-control" placeholder="e.g. Coimbatore, Chennai, Madurai">
+                </div>
+                <div class="quick-locations">
+                    <span class="quick-loc-badge" onclick="setLocation('Coimbatore, TN')">Coimbatore</span>
+                    <span class="quick-loc-badge" onclick="setLocation('Chennai, TN')">Chennai</span>
+                    <span class="quick-loc-badge" onclick="setLocation('Madurai, TN')">Madurai</span>
+                    <span class="quick-loc-badge" onclick="setLocation('Salem, TN')">Salem</span>
+                    <span class="quick-loc-badge" onclick="setLocation('Tirunelveli, TN')">Tirunelveli</span>
+                </div>
+                <button class="btn btn-primary btn-full" id="set-location-btn">
+                    <i class="fa-solid fa-check"></i> Confirm Location
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== WISHLIST DRAWER ===== -->
+    <div class="modal-overlay" id="wishlist-modal">
+        <div class="modal-card">
+            <button class="modal-close-btn" id="wishlist-modal-close"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-heart text-primary"></i> My Favourites</h3>
+            </div>
+            <div class="modal-body" id="wishlist-items-container">
+                <div class="empty-state"><i class="fa-regular fa-heart" style="font-size:2rem;margin-bottom:1rem;"></i><br>No favourites yet! Heart items you love.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MAIN APP ===== -->
+    <main id="app-main">
+
+        <!-- ===================================================
+             LANDING / HOME PAGE
+        =================================================== -->
         <section id="landing-view" class="view-section">
-            <div class="hero-section">
+
+            <!-- Hero Banner -->
+            <div class="hero-banner">
                 <div class="hero-content">
-                    <span class="hero-tagline"><i class="fa-solid fa-sparkles"></i> Satisfy Your Cravings</span>
-                    <h1 class="hero-title">Super Fast Delivery to Your Doorstep</h1>
-                    <p class="hero-desc">Discover top restaurants in Springfield, place your orders in seconds, and track your delivery live with real-time updates.</p>
-                    <div class="hero-cta-group">
-                        <button class="btn btn-primary btn-lg" id="explore-btn">
-                            Explore Restaurants <i class="fa-solid fa-arrow-right"></i>
-                        </button>
-                        <button class="btn btn-secondary btn-lg" id="demo-guide-btn">
-                            Try Demo Accounts
-                        </button>
+                    <h1 class="hero-title">Delicious Food,<br><span class="gradient-text">Delivered Fast</span></h1>
+                    <p class="hero-subtitle">Order from 100+ restaurants across Coimbatore. Authentic Tamil Nadu cuisine, Biryani, Pizza, Burgers & more — hot at your door in 30 mins.</p>
+                    <div class="hero-search-bar">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="hero-search-input" class="hero-search-input" placeholder="Search for Biryani, Dosa, Pizza, Burger...">
+                        <button class="btn btn-primary" id="hero-search-btn">Search</button>
+                    </div>
+                    <div class="hero-badges">
+                        <span><i class="fa-solid fa-clock"></i> 25-min avg delivery</span>
+                        <span><i class="fa-solid fa-shield-halved"></i> Hygienic & Fresh</span>
+                        <span><i class="fa-solid fa-tag"></i> Best Offers Daily</span>
                     </div>
                 </div>
                 <div class="hero-visual">
-                    <div class="hero-blob"></div>
-                    <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=600&q=80" alt="Delicious Food" class="hero-img">
-                    <div class="floating-card tracking-card">
-                        <i class="fa-solid fa-truck-fast text-primary"></i>
+                    <div class="hero-floating-card">
+                        <img src="https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=300" alt="Biryani" class="hero-food-img">
+                        <div class="hero-card-badge"><i class="fa-solid fa-star"></i> 4.8 · 25 min</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Quick Links -->
+            <div class="container">
+                <div class="category-strip" id="category-strip">
+                    <button class="cat-pill active" data-cat="All" onclick="filterByCategory('All')">🍽️ All</button>
+                    <button class="cat-pill" data-cat="Tamil Nadu Foods" onclick="filterByCategory('Tamil Nadu Foods')">🌿 Tamil Nadu</button>
+                    <button class="cat-pill" data-cat="Biryani" onclick="filterByCategory('Biryani')">🍚 Biryani</button>
+                    <button class="cat-pill" data-cat="Pizza" onclick="filterByCategory('Pizza')">🍕 Pizza</button>
+                    <button class="cat-pill" data-cat="Burgers" onclick="filterByCategory('Burgers')">🍔 Burgers</button>
+                    <button class="cat-pill" data-cat="Fried Chicken" onclick="filterByCategory('Fried Chicken')">🍗 Fried Chicken</button>
+                    <button class="cat-pill" data-cat="Chinese" onclick="filterByCategory('Chinese')">🥡 Chinese</button>
+                    <button class="cat-pill" data-cat="Desserts" onclick="filterByCategory('Desserts')">🍮 Desserts</button>
+                    <button class="cat-pill" data-cat="Drinks" onclick="filterByCategory('Drinks')">🥤 Drinks</button>
+                </div>
+
+                <!-- Offers Banner -->
+                <div class="offers-strip" id="offers-strip">
+                    <div class="offer-card">
+                        <div class="offer-badge">50% OFF</div>
+                        <p>Use code <strong>WELCOME50</strong> — Save up to ₹100</p>
+                    </div>
+                    <div class="offer-card">
+                        <div class="offer-badge">FREE</div>
+                        <p>Free delivery on orders above ₹299</p>
+                    </div>
+                    <div class="offer-card">
+                        <div class="offer-badge">₹30 OFF</div>
+                        <p>Use code <strong>SAVEMORE</strong> on cart above ₹199</p>
+                    </div>
+                </div>
+
+                <!-- Filter Bar -->
+                <div class="filter-bar">
+                    <span class="filter-label">Filters:</span>
+                    <button class="filter-chip" id="filter-veg" onclick="toggleFilter('veg')"><i class="fa-solid fa-leaf"></i> Veg</button>
+                    <button class="filter-chip" id="filter-nonveg" onclick="toggleFilter('nonveg')"><i class="fa-solid fa-drumstick-bite"></i> Non-Veg</button>
+                    <button class="filter-chip" id="filter-rating" onclick="toggleFilter('rating')"><i class="fa-solid fa-star"></i> 4.0+ Rated</button>
+                    <button class="filter-chip" id="filter-fast" onclick="toggleFilter('fast')"><i class="fa-solid fa-bolt"></i> Fast Delivery</button>
+                    <button class="filter-chip" id="filter-offers" onclick="toggleFilter('offers')"><i class="fa-solid fa-tag"></i> Offers</button>
+                    <button class="filter-chip" id="filter-popular" onclick="sortRestaurants('popular')"><i class="fa-solid fa-fire"></i> Popular</button>
+                    <button class="filter-chip" id="filter-price-low" onclick="sortRestaurants('price')"><i class="fa-solid fa-arrow-down-wide-short"></i> Price: Low</button>
+                </div>
+
+                <!-- Restaurants Section -->
+                <div class="section-header">
+                    <h2 class="section-title-main">Restaurants Near You</h2>
+                    <span class="section-count" id="restaurants-count"></span>
+                </div>
+                <div class="restaurant-grid" id="landing-restaurant-grid">
+                    <!-- dynamically populated -->
+                </div>
+
+                <!-- Featured Items Section -->
+                <div class="section-header" style="margin-top: 3rem;">
+                    <h2 class="section-title-main">Popular Dishes Today</h2>
+                </div>
+                <div class="featured-items-grid" id="featured-items-grid">
+                    <!-- dynamically populated -->
+                </div>
+            </div>
+
+            <!-- Platform Info Section -->
+            <div class="platform-info-section">
+                <div class="info-grid container">
+                    <div class="info-brand">
+                        <h3><i class="fa-solid fa-bolt text-primary"></i> Quick<span>Bite</span></h3>
+                        <p>India's premium food discovery and delivery platform, connecting you to 100+ restaurants across Tamil Nadu with real-time tracking and seamless payments.</p>
+                        <h4>Our Mission</h4>
+                        <p style="font-style:italic;">"To preserve and promote regional culinary heritage while providing state-of-the-art logistics and a seamless ordering experience."</p>
+                    </div>
+                    <div>
+                        <h3 class="section-title" style="text-align:left;margin-bottom:1.5rem;font-size:1.6rem;">Why Choose QuickBite</h3>
+                        <div class="why-choose-grid">
+                            <div class="why-card">
+                                <div class="why-icon"><i class="fa-solid fa-truck-fast"></i></div>
+                                <div class="why-info"><h4>Fast Delivery</h4><p>Hot delivery under 30 minutes with live GPS tracking.</p></div>
+                            </div>
+                            <div class="why-card">
+                                <div class="why-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                                <div class="why-info"><h4>Fresh & Hygienic</h4><p>Strict kitchen quality audits and safety-certified packaging.</p></div>
+                            </div>
+                            <div class="why-card">
+                                <div class="why-icon"><i class="fa-solid fa-headset"></i></div>
+                                <div class="why-info"><h4>24/7 Support</h4><p>Our team is always ready to resolve any order issue.</p></div>
+                            </div>
+                            <div class="why-card">
+                                <div class="why-icon"><i class="fa-solid fa-credit-card"></i></div>
+                                <div class="why-info"><h4>Secure Payments</h4><p>Safe UPI, Card and COD options with zero fraud risk.</p></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="info-contact">
+                        <h4>Contact Us</h4>
+                        <div class="contact-item"><i class="fa-solid fa-location-dot"></i><span>101 Avinashi Rd, Coimbatore, TN 641018</span></div>
+                        <div class="contact-item"><i class="fa-solid fa-phone"></i><span>+91 98765 43210</span></div>
+                        <div class="contact-item"><i class="fa-solid fa-envelope"></i><span>quickbite@gmail.com</span></div>
+                        <div class="legal-links">
+                            <a href="#" onclick="showInfoModal('privacy')">Privacy Policy</a>
+                            <span>•</span>
+                            <a href="#" onclick="showInfoModal('terms')">Terms</a>
+                            <span>•</span>
+                            <a href="#" onclick="showInfoModal('refund')">Refund</a>
+                            <span>•</span>
+                            <a href="#" onclick="showInfoModal('faq')">FAQ</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="site-footer">
+                <div class="footer-container container">
+                    <div class="footer-brand">
+                        <span class="footer-logo"><i class="fa-solid fa-bolt"></i> QuickBite</span>
+                        <p>© 2025 QuickBite Technologies Pvt. Ltd. All rights reserved.</p>
+                        <div class="footer-social">
+                            <a href="#" class="social-icon" title="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                            <a href="#" class="social-icon" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                            <a href="#" class="social-icon" title="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
+                            <a href="#" class="social-icon" title="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                            <a href="#" class="social-icon" title="YouTube"><i class="fa-brands fa-youtube"></i></a>
+                        </div>
+                    </div>
+                    <div class="footer-col">
+                        <h5>Company</h5>
+                        <a href="#" onclick="showInfoModal('about')">About Us</a>
+                        <a href="#" onclick="showInfoModal('careers')">Careers</a>
+                        <a href="#" onclick="showInfoModal('press')">Press</a>
+                        <a href="#" onclick="showInfoModal('blog')">Blog</a>
+                    </div>
+                    <div class="footer-col">
+                        <h5>Services</h5>
+                        <a href="#" onclick="navigateTo('customer')">Order Food</a>
+                        <a href="#" onclick="showInfoModal('restaurants')">For Restaurants</a>
+                        <a href="#" onclick="showInfoModal('driver')">Delivery Partners</a>
+                        <a href="#" onclick="showInfoModal('corporate')">Corporate Orders</a>
+                    </div>
+                    <div class="footer-col">
+                        <h5>Help</h5>
+                        <a href="#" onclick="showInfoModal('faq')">FAQ</a>
+                        <a href="#" onclick="showInfoModal('help')">Help Center</a>
+                        <a href="#" onclick="showInfoModal('contact')">Contact Us</a>
+                        <a href="#" onclick="showInfoModal('privacy')">Privacy Policy</a>
+                        <a href="#" onclick="showInfoModal('terms')">Terms & Conditions</a>
+                        <a href="#" onclick="showInfoModal('refund')">Refund Policy</a>
+                    </div>
+                </div>
+            </footer>
+        </section>
+
+        <!-- ===================================================
+             CUSTOMER BROWSE VIEW
+        =================================================== -->
+        <section id="customer-view" class="view-section" style="display:none;">
+            <div class="customer-header">
+                <div class="container">
+                    <div class="customer-hero">
                         <div>
-                            <h4>Order Tracked</h4>
-                            <p>Driver is 5 mins away</p>
+                            <h2>Welcome, <span class="customer-name">Guest</span>! 👋</h2>
+                            <p class="text-muted">Explore authentic Tamil Nadu cuisine and more.</p>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quick Demo Login Section -->
-            <div class="demo-section">
-                <h3 class="section-title text-center">Quick Demo Access</h3>
-                <p class="section-subtitle text-center">Log in instantly with preset accounts to test different roles and workflows.</p>
-                <div class="demo-grid">
-                    <!-- Customer Card -->
-                    <div class="demo-card card-customer">
-                        <div class="demo-card-header">
-                            <i class="fa-solid fa-utensils demo-icon"></i>
-                            <h4>Customer Portal</h4>
-                        </div>
-                        <p>Browse restaurants, add food items to cart, place orders, and track deliveries.</p>
-                        <div class="demo-account-info">
-                            <span><strong>Email:</strong> customer@quickbite.com</span>
-                            <span><strong>Pass:</strong> password</span>
-                        </div>
-                        <button class="btn btn-primary btn-full demo-login-btn" data-email="customer@quickbite.com">
-                            Login as Customer
-                        </button>
-                    </div>
-
-                    <!-- Owner Card -->
-                    <div class="demo-card card-owner">
-                        <div class="demo-card-header">
-                            <i class="fa-solid fa-store demo-icon"></i>
-                            <h4>Owner Portal</h4>
-                        </div>
-                        <p>Accept/manage restaurant orders, update preparation status, and add menu items.</p>
-                        <div class="demo-account-info">
-                            <span><strong>Email:</strong> owner@quickbite.com</span>
-                            <span><strong>Pass:</strong> password</span>
-                        </div>
-                        <button class="btn btn-secondary btn-full demo-login-btn" data-email="owner@quickbite.com">
-                            Login as Owner
-                        </button>
-                    </div>
-
-                    <!-- Driver Card -->
-                    <div class="demo-card card-driver">
-                        <div class="demo-card-header">
-                            <i class="fa-solid fa-motorcycle demo-icon"></i>
-                            <h4>Driver Portal</h4>
-                        </div>
-                        <p>Receive order delivery jobs, update transit status, and track estimated times.</p>
-                        <div class="demo-account-info">
-                            <span><strong>Email:</strong> driver@quickbite.com</span>
-                            <span><strong>Pass:</strong> password</span>
-                        </div>
-                        <button class="btn btn-dark btn-full demo-login-btn" data-email="driver@quickbite.com">
-                            Login as Driver
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 2. Customer Restaurant Browser -->
-        <section id="customer-view" class="view-section" style="display: none;">
-            <div class="dashboard-header">
-                <div>
-                    <h2>Welcome back, <span class="customer-name">Guest</span>!</h2>
-                    <p class="text-muted">What are you craving today?</p>
-                </div>
-                <div class="tab-selectors">
-                    <button class="tab-btn active" id="tab-restaurants"><i class="fa-solid fa-store"></i> Restaurants</button>
-                    <button class="tab-btn" id="tab-orders"><i class="fa-solid fa-clock-rotate-left"></i> My Orders <span class="badge" id="active-orders-count">0</span></button>
-                </div>
-            </div>
-
-            <!-- Restaurants Panel -->
-            <div id="panel-restaurants" class="dashboard-panel">
-                <div class="search-filter-bar">
-                    <div class="search-box">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="restaurant-search" placeholder="Search restaurants or cuisines...">
-                    </div>
-                </div>
-                <div class="restaurant-grid" id="restaurant-list">
-                    <!-- Loaded dynamically -->
-                </div>
-            </div>
-
-            <!-- Orders Panel -->
-            <div id="panel-orders" class="dashboard-panel" style="display: none;">
-                <div class="orders-list-container">
-                    <h3>Your Order History</h3>
-                    <div id="customer-orders-list" class="orders-vertical-list">
-                        <!-- Loaded dynamically -->
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 3. Restaurant Menu Browser -->
-        <section id="menu-view" class="view-section" style="display: none;">
-            <div class="menu-hero" id="menu-restaurant-banner">
-                <!-- Background Banner and Details -->
-            </div>
-            <div class="menu-container">
-                <div class="menu-main">
-                    <div class="menu-category-tabs" id="menu-categories">
-                        <!-- Category tabs -->
-                    </div>
-                    <div class="menu-grid" id="menu-items-list">
-                        <!-- Items dynamically loaded -->
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 4. Restaurant Owner Dashboard -->
-        <section id="owner-view" class="view-section" style="display: none;">
-            <div class="dashboard-header">
-                <div>
-                    <h2>Restaurant Owner Dashboard</h2>
-                    <p class="text-muted">Manage incoming orders and update menus in real-time.</p>
-                </div>
-                <div class="tab-selectors">
-                    <button class="tab-btn active" id="tab-owner-orders"><i class="fa-solid fa-receipt"></i> Orders Panel</button>
-                    <button class="tab-btn" id="tab-owner-menu"><i class="fa-solid fa-plus-circle"></i> Add Menu Item</button>
-                </div>
-            </div>
-
-            <!-- Owner Orders Panel -->
-            <div id="panel-owner-orders" class="dashboard-panel">
-                <div class="owner-restaurant-select-bar">
-                    <label for="owner-restaurant-select"><strong>Select Restaurant to Manage:</strong></label>
-                    <select id="owner-restaurant-select" class="form-control inline-select">
-                        <!-- Restaurants loaded dynamically -->
-                    </select>
-                </div>
-                <div class="owner-orders-grid" id="owner-orders-list">
-                    <!-- Orders dynamically loaded -->
-                </div>
-            </div>
-
-            <!-- Owner Menu Panel -->
-            <div id="panel-owner-menu" class="dashboard-panel" style="display: none;">
-                <div class="card form-card">
-                    <h3>Add New Menu Item</h3>
-                    <form id="add-menu-form">
-                        <div class="form-group">
-                            <label for="menu-item-restaurant">Target Restaurant</label>
-                            <select id="menu-item-restaurant" class="form-control" required>
-                                <!-- Loaded dynamically -->
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="menu-item-name">Item Name</label>
-                            <input type="text" id="menu-item-name" class="form-control" placeholder="e.g. Crispy Chicken Wings" required>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group col">
-                                <label for="menu-item-price">Price ($)</label>
-                                <input type="number" id="menu-item-price" class="form-control" step="0.01" min="0.1" placeholder="e.g. 7.99" required>
-                            </div>
-                            <div class="form-group col">
-                                <label for="menu-item-category">Category</label>
-                                <select id="menu-item-category" class="form-control" required>
-                                    <option value="Appetizer">Appetizer</option>
-                                    <option value="Main Course" selected>Main Course</option>
-                                    <option value="Dessert">Dessert</option>
-                                    <option value="Beverage">Beverage</option>
-                                </select>
+                        <div class="customer-search-wrap">
+                            <div class="search-box">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="restaurant-search" class="search-input" placeholder="Search restaurants or dishes...">
+                                <div class="search-suggestions-box" id="customer-suggestions-box"></div>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="menu-item-desc">Description</label>
-                            <textarea id="menu-item-desc" class="form-control" rows="3" placeholder="Describe the taste, ingredients, portion size..." required></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="menu-item-image">Image URL</label>
-                            <input type="url" id="menu-item-image" class="form-control" placeholder="e.g. https://images.unsplash.com/..." required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fa-solid fa-plus"></i> Add Item to Menu
-                        </button>
-                    </form>
+                    </div>
+
+                    <!-- Tab Nav -->
+                    <div class="tab-nav">
+                        <button class="tab-btn active" id="tab-restaurants"><i class="fa-solid fa-utensils"></i> Restaurants</button>
+                        <button class="tab-btn" id="tab-orders"><i class="fa-solid fa-receipt"></i> My Orders <span class="badge" id="active-orders-count">0</span></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container" style="padding-top: 1.5rem;">
+                <!-- Category Strip -->
+                <div class="category-strip" id="customer-category-strip">
+                    <button class="cat-pill active" data-cat="All" onclick="customerFilterByCategory('All')">🍽️ All</button>
+                    <button class="cat-pill" data-cat="Tamil Nadu Foods" onclick="customerFilterByCategory('Tamil Nadu Foods')">🌿 Tamil Nadu</button>
+                    <button class="cat-pill" data-cat="Biryani" onclick="customerFilterByCategory('Biryani')">🍚 Biryani</button>
+                    <button class="cat-pill" data-cat="Pizza" onclick="customerFilterByCategory('Pizza')">🍕 Pizza</button>
+                    <button class="cat-pill" data-cat="Burgers" onclick="customerFilterByCategory('Burgers')">🍔 Burgers</button>
+                    <button class="cat-pill" data-cat="Fried Chicken" onclick="customerFilterByCategory('Fried Chicken')">🍗 Fried Chicken</button>
+                    <button class="cat-pill" data-cat="Chinese" onclick="customerFilterByCategory('Chinese')">🥡 Chinese</button>
+                    <button class="cat-pill" data-cat="Desserts" onclick="customerFilterByCategory('Desserts')">🍮 Desserts</button>
+                    <button class="cat-pill" data-cat="Drinks" onclick="customerFilterByCategory('Drinks')">🥤 Drinks</button>
+                </div>
+
+                <!-- Filters -->
+                <div class="filter-bar">
+                    <button class="filter-chip" id="c-filter-veg" onclick="toggleCustomerFilter('veg')"><i class="fa-solid fa-leaf"></i> Veg</button>
+                    <button class="filter-chip" id="c-filter-nonveg" onclick="toggleCustomerFilter('nonveg')"><i class="fa-solid fa-drumstick-bite"></i> Non-Veg</button>
+                    <button class="filter-chip" id="c-filter-rating" onclick="toggleCustomerFilter('rating')"><i class="fa-solid fa-star"></i> 4.0+ Rated</button>
+                    <button class="filter-chip" id="c-filter-fast" onclick="toggleCustomerFilter('fast')"><i class="fa-solid fa-bolt"></i> Fast Delivery</button>
+                    <button class="filter-chip" id="c-filter-offers" onclick="toggleCustomerFilter('offers')"><i class="fa-solid fa-tag"></i> Has Offers</button>
+                </div>
+
+                <!-- Restaurant Grid Panel -->
+                <div id="panel-restaurants" class="dashboard-panel">
+                    <div class="restaurant-grid" id="restaurant-list">
+                        <!-- dynamically populated -->
+                    </div>
+                </div>
+
+                <!-- Orders Panel -->
+                <div id="panel-orders" class="dashboard-panel" style="display:none;">
+                    <div id="customer-orders-list"></div>
                 </div>
             </div>
         </section>
 
-        <!-- 5. Delivery Driver Dashboard -->
-        <section id="driver-view" class="view-section" style="display: none;">
-            <div class="dashboard-header">
-                <div>
-                    <h2>Delivery Partner Portal</h2>
-                    <p class="text-muted">Track assignments, manage food pick-ups, and deliver smiles.</p>
+        <!-- ===================================================
+             MENU VIEW (Restaurant detail + items)
+        =================================================== -->
+        <section id="menu-view" class="view-section" style="display:none;">
+            <div class="restaurant-hero-banner" id="restaurant-hero-banner">
+                <div class="restaurant-hero-overlay"></div>
+                <div class="container restaurant-hero-content">
+                    <button class="btn btn-outline btn-sm" onclick="navigateTo('customer')" style="margin-bottom:1rem;">
+                        <i class="fa-solid fa-arrow-left"></i> Back
+                    </button>
+                    <div class="restaurant-info-header">
+                        <div class="restaurant-logo-wrap" id="restaurant-logo-wrap">
+                            <i class="fa-solid fa-store" style="font-size:2rem;color:var(--primary)"></i>
+                        </div>
+                        <div>
+                            <h2 id="menu-restaurant-name">Restaurant Name</h2>
+                            <p id="menu-restaurant-cuisine" class="text-muted"></p>
+                            <div class="restaurant-meta-row">
+                                <span class="meta-badge"><i class="fa-solid fa-star text-warning"></i> <span id="menu-restaurant-rating">4.5</span></span>
+                                <span class="meta-badge"><i class="fa-solid fa-clock"></i> <span id="menu-restaurant-time">30</span> min</span>
+                                <span class="meta-badge"><i class="fa-solid fa-truck-fast"></i> ₹<span id="menu-restaurant-fee">20</span> delivery</span>
+                                <span class="meta-badge offer-badge-small" id="menu-restaurant-offer"></span>
+                            </div>
+                            <p class="text-muted" style="margin-top:.3rem;font-size:.85rem;" id="menu-restaurant-address"></p>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="driver-container">
-                <div class="driver-sidebar">
-                    <div class="card driver-profile-card">
-                        <i class="fa-solid fa-helmet-safety driver-large-icon"></i>
-                        <h3>Bob Rider</h3>
-                        <p class="role-pill pill-driver">Active Driver</p>
-                        <hr>
+
+            <div class="container" style="padding-top: 1.5rem;">
+                <!-- Menu Category Filter -->
+                <div class="menu-category-nav" id="menu-category-nav">
+                    <button class="cat-pill active" data-cat="All" onclick="filterMenuItems('All')">All Items</button>
+                </div>
+
+                <div class="menu-layout">
+                    <!-- Menu Items Grid -->
+                    <div class="menu-items-main">
+                        <div class="menu-items-grid" id="menu-items-grid"></div>
+                    </div>
+
+                    <!-- Cart Sidebar -->
+                    <div class="menu-cart-sidebar" id="menu-cart-sidebar">
+                        <div class="sidebar-cart-card">
+                            <h4><i class="fa-solid fa-bag-shopping text-primary"></i> Your Cart</h4>
+                            <div id="sidebar-cart-items"><p class="text-muted" style="font-size:.85rem;">Add items to get started</p></div>
+                            <div id="sidebar-cart-total" style="display:none;">
+                                <hr>
+                                <div class="cart-subtotal-row"><span>Subtotal</span><span id="sidebar-subtotal">₹0</span></div>
+                                <button class="btn btn-primary btn-full" onclick="openCartDrawer()">View Cart & Checkout</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================================================
+             OWNER VIEW
+        =================================================== -->
+        <section id="owner-view" class="view-section" style="display:none;">
+            <div class="container">
+                <div class="dashboard-header">
+                    <div>
+                        <h2>🏪 Restaurant Management Hub</h2>
+                        <p class="text-muted">Manage your orders, menus and kitchen operations.</p>
+                    </div>
+                    <select id="owner-restaurant-select" class="form-control" style="max-width:260px;"></select>
+                </div>
+                <div class="tab-nav">
+                    <button class="tab-btn active" id="tab-owner-orders"><i class="fa-solid fa-receipt"></i> Live Orders</button>
+                    <button class="tab-btn" id="tab-owner-menu"><i class="fa-solid fa-utensils"></i> Menu Items</button>
+                </div>
+                <div id="panel-owner-orders" class="dashboard-panel">
+                    <div class="owner-orders-grid" id="owner-orders-list"></div>
+                </div>
+                <div id="panel-owner-menu" class="dashboard-panel" style="display:none;">
+                    <div class="card" style="padding:2rem;margin-bottom:2rem;">
+                        <h3 style="margin-bottom:1.5rem;">Add New Menu Item</h3>
+                        <form id="add-menu-form">
+                            <div class="form-row">
+                                <div class="form-group col"><label>Item Name</label><input type="text" id="new-item-name" class="form-control" required></div>
+                                <div class="form-group col"><label>Price (₹)</label><input type="number" id="new-item-price" class="form-control" required></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col"><label>Category</label>
+                                    <select id="new-item-category" class="form-control">
+                                        <option>Tamil Nadu Foods</option><option>Pizza</option><option>Burgers</option><option>Biryani</option>
+                                        <option>Fried Chicken</option><option>Chinese</option><option>Desserts</option><option>Drinks</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col"><label>Region</label><input type="text" id="new-item-region" class="form-control" placeholder="e.g. Chettinad"></div>
+                            </div>
+                            <div class="form-group"><label>Description</label><input type="text" id="new-item-description" class="form-control"></div>
+                            <div class="form-row">
+                                <div class="form-group col"><label>Is Veg?</label>
+                                    <select id="new-item-veg" class="form-control"><option value="true">Yes (Veg)</option><option value="false">No (Non-Veg)</option></select>
+                                </div>
+                                <div class="form-group col"><label>Image URL</label><input type="url" id="new-item-image" class="form-control"></div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Item</button>
+                        </form>
+                    </div>
+                    <div id="owner-menu-items-list"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================================================
+             DRIVER VIEW
+        =================================================== -->
+        <section id="driver-view" class="view-section" style="display:none;">
+            <div class="container">
+                <div class="dashboard-header">
+                    <div>
+                        <h2>🏍️ Courier Delivery Portal</h2>
+                        <p class="text-muted">Manage your active delivery jobs and update status.</p>
+                    </div>
+                </div>
+                <div class="driver-container">
+                    <div class="driver-profile-card card">
+                        <div class="driver-large-icon"><i class="fa-solid fa-motorcycle"></i></div>
+                        <h3 id="driver-profile-name">Bob Rider</h3>
+                        <span class="status-badge status-preparing">Active</span>
                         <div class="driver-stats">
-                            <div>
-                                <span>Status</span>
-                                <strong class="text-success">Available</strong>
-                            </div>
-                            <div>
-                                <span>Vehicle</span>
-                                <strong>Scooter E-20</strong>
-                            </div>
+                            <div><strong>12</strong><br><small>Deliveries Today</small></div>
+                            <div><strong>4.9★</strong><br><small>Rating</small></div>
+                            <div><strong>₹840</strong><br><small>Today's Earnings</small></div>
                         </div>
                     </div>
-                </div>
-                <div class="driver-main">
-                    <h3>Active Delivery Tracking Tasks</h3>
-                    <div class="driver-jobs-list" id="driver-jobs-list">
-                        <!-- Loaded dynamically -->
+                    <div>
+                        <h3 style="margin-bottom:1.5rem;">Active Delivery Jobs</h3>
+                        <div class="driver-jobs-list" id="driver-jobs-list"></div>
                     </div>
                 </div>
             </div>
         </section>
+
     </main>
 
-    <!-- Cart Sidebar Drawer -->
+    <!-- ===== CART DRAWER ===== -->
     <div class="cart-drawer-overlay" id="cart-drawer-overlay"></div>
     <div class="cart-drawer" id="cart-drawer">
         <div class="cart-drawer-header">
-            <h3>Your Cart</h3>
-            <button class="close-drawer-btn" id="cart-close-btn"><i class="fa-solid fa-xmark"></i></button>
+            <h3><i class="fa-solid fa-bag-shopping"></i> Your Cart</h3>
+            <button class="modal-close-btn" id="cart-close-btn"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <div class="cart-drawer-content">
-            <div class="cart-items-container" id="cart-items-list">
-                <!-- Added cart items -->
-            </div>
-            <div class="cart-summary" id="cart-summary-box">
-                <div class="cart-total-row">
-                    <span>Subtotal</span>
-                    <strong id="cart-total-amount">$0.00</strong>
+        <div id="guest-cart-note" style="display:none;" class="cart-note">
+            <i class="fa-solid fa-circle-info"></i> You can add items and sign in at checkout.
+        </div>
+        <div class="cart-items-list" id="cart-items-container"></div>
+        <div class="cart-empty-state" id="cart-empty" style="display:none;">
+            <i class="fa-solid fa-bag-shopping" style="font-size:3rem;color:var(--text-muted);margin-bottom:1rem;"></i>
+            <p>Your cart is empty</p>
+            <button class="btn btn-outline btn-sm" onclick="closeCartDrawer()">Browse Restaurants</button>
+        </div>
+        <div class="cart-footer" id="cart-footer" style="display:none;">
+            <!-- Coupon -->
+            <div class="coupon-row">
+                <div class="coupon-input-wrap">
+                    <i class="fa-solid fa-tag coupon-icon"></i>
+                    <input type="text" id="coupon-code-input" class="coupon-input" placeholder="Enter coupon code">
                 </div>
-                <hr>
-                <form id="checkout-form">
-                    <div class="form-group">
-                        <label for="checkout-address">Delivery Address</label>
-                        <input type="text" id="checkout-address" class="form-control" placeholder="123 Main St, Springfield" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="checkout-phone">Phone Number</label>
-                        <input type="tel" id="checkout-phone" class="form-control" placeholder="555-123-4567" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-full btn-lg" id="checkout-submit-btn">
-                        Place Order <i class="fa-solid fa-arrow-right-to-bracket"></i>
-                    </button>
-                </form>
+                <button class="btn btn-outline btn-sm" id="apply-coupon-btn">Apply</button>
+            </div>
+            <div class="coupon-message" id="coupon-message"></div>
+
+            <!-- Price Breakdown -->
+            <div class="cart-price-breakdown">
+                <div class="price-row"><span>Item Total</span><span id="cart-item-total">₹0</span></div>
+                <div class="price-row"><span>Delivery Charge</span><span id="cart-delivery-charge">₹30</span></div>
+                <div class="price-row"><span>GST (5%)</span><span id="cart-gst">₹0</span></div>
+                <div class="price-row"><span>Platform Fee</span><span id="cart-platform-fee">₹2</span></div>
+                <div class="price-row discount-row" id="cart-discount-row" style="display:none;">
+                    <span>Coupon Discount</span><span id="cart-discount-amount" class="text-success">-₹0</span>
+                </div>
+                <div class="price-row total-row"><span>Grand Total</span><span id="cart-grand-total">₹0</span></div>
+            </div>
+
+            <!-- Checkout Address -->
+            <form id="checkout-form">
+                <div class="form-group">
+                    <label>Delivery Address</label>
+                    <input type="text" id="checkout-address" class="form-control" placeholder="Enter full delivery address" required>
+                </div>
+                <div class="form-group">
+                    <label>Contact Number</label>
+                    <input type="tel" id="checkout-phone" class="form-control" placeholder="10-digit mobile number" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full checkout-btn">
+                    <i class="fa-solid fa-lock"></i> Proceed to Checkout
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== FOOD DETAIL MODAL ===== -->
+    <div class="modal-overlay" id="product-detail-modal">
+        <div class="modal-card modal-xl">
+            <button class="modal-close-btn" id="product-detail-close-btn"><i class="fa-solid fa-xmark"></i></button>
+            <div class="product-detail-body" id="product-detail-body">
+                <!-- Dynamically populated -->
             </div>
         </div>
     </div>
 
-    <!-- Auth Modal -->
-    <div class="modal-overlay" id="auth-modal">
-        <div class="modal-card">
-            <button class="modal-close-btn" id="auth-close-btn"><i class="fa-solid fa-xmark"></i></button>
+    <!-- ===== PAYMENT MODAL ===== -->
+    <div class="modal-overlay" id="payment-modal">
+        <div class="modal-card modal-lg">
+            <button class="modal-close-btn" id="payment-close-btn"><i class="fa-solid fa-xmark"></i></button>
             <div class="modal-header">
-                <h3 id="auth-modal-title">Sign In to QuickBite</h3>
+                <h3><i class="fa-solid fa-shield-halved text-primary"></i> Secure Payment</h3>
+                <p class="text-muted">Your payment is 100% encrypted and secure</p>
             </div>
             <div class="modal-body">
-                <!-- Sign In Form -->
-                <form id="login-form">
-                    <div class="form-group">
-                        <label for="login-email">Email Address</label>
-                        <input type="email" id="login-email" class="form-control" placeholder="customer@quickbite.com" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="login-password">Password</label>
-                        <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-full">
-                        Sign In <i class="fa-solid fa-arrow-right-to-bracket"></i>
-                    </button>
-                    <p class="auth-toggle-prompt">Don't have an account? <a href="#" id="go-to-register">Register here</a></p>
-                </form>
+                <div class="payment-total-display">
+                    <span>Total Payable:</span>
+                    <strong id="payment-modal-total">₹0</strong>
+                </div>
 
-                <!-- Register Form -->
-                <form id="register-form" style="display: none;">
-                    <div class="form-group">
-                        <label for="register-name">Full Name</label>
-                        <input type="text" id="register-name" class="form-control" placeholder="e.g. John Doe" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="register-email">Email Address</label>
-                        <input type="email" id="register-email" class="form-control" placeholder="email@example.com" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="register-password">Password</label>
-                        <input type="password" id="register-password" class="form-control" placeholder="••••••••" required>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group col">
-                            <label for="register-role">I want to:</label>
-                            <select id="register-role" class="form-control" required>
-                                <option value="CUSTOMER" selected>Order Food (Customer)</option>
-                                <option value="OWNER">Sell Food (Restaurant Owner)</option>
-                                <option value="DRIVER">Deliver Food (Driver)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="register-address">Address</label>
-                        <input type="text" id="register-address" class="form-control" placeholder="e.g. 123 Main St, Springfield">
-                    </div>
-                    <div class="form-group">
-                        <label for="register-phone">Phone Number</label>
-                        <input type="tel" id="register-phone" class="form-control" placeholder="e.g. 555-123-4567">
-                    </div>
-                    <button type="submit" class="btn btn-secondary btn-full">
-                        Register Account <i class="fa-solid fa-user-plus"></i>
+                <h4 style="margin-bottom:1rem;">Choose Payment Method</h4>
+                <div class="payment-methods-grid">
+                    <button class="pay-card-btn active" id="pay-upi" onclick="selectPaymentMethod('upi')">
+                        <i class="fa-solid fa-qrcode"></i><span>UPI / QR</span>
                     </button>
-                    <p class="auth-toggle-prompt">Already have an account? <a href="#" id="go-to-login">Sign In here</a></p>
+                    <button class="pay-card-btn" id="pay-gpay" onclick="selectPaymentMethod('gpay')">
+                        <i class="fa-brands fa-google-pay"></i><span>Google Pay</span>
+                    </button>
+                    <button class="pay-card-btn" id="pay-phonepe" onclick="selectPaymentMethod('phonepe')">
+                        <i class="fa-solid fa-mobile-screen-button"></i><span>PhonePe</span>
+                    </button>
+                    <button class="pay-card-btn" id="pay-paytm" onclick="selectPaymentMethod('paytm')">
+                        <i class="fa-solid fa-wallet"></i><span>Paytm</span>
+                    </button>
+                    <button class="pay-card-btn" id="pay-card" onclick="selectPaymentMethod('card')">
+                        <i class="fa-solid fa-credit-card"></i><span>Card</span>
+                    </button>
+                    <button class="pay-card-btn" id="pay-cod" onclick="selectPaymentMethod('cod')">
+                        <i class="fa-solid fa-money-bill-wave"></i><span>Cash on Delivery</span>
+                    </button>
+                </div>
+
+                <!-- UPI Panel -->
+                <div id="panel-upi" class="payment-panel">
+                    <div class="upi-scan-box">
+                        <div class="qr-code-placeholder"></div>
+                        <p>Scan QR with any UPI app</p>
+                        <p class="text-muted" style="font-size:.8rem;">UPI ID: quickbite@okaxis</p>
+                    </div>
+                </div>
+
+                <!-- Card Panel -->
+                <div id="panel-card" class="payment-panel" style="display:none;">
+                    <div class="form-group"><label>Card Number</label><input type="text" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19"></div>
+                    <div class="form-row">
+                        <div class="form-group col"><label>Expiry</label><input type="text" class="form-control" placeholder="MM/YY" maxlength="5"></div>
+                        <div class="form-group col"><label>CVV</label><input type="text" class="form-control" placeholder="123" maxlength="3"></div>
+                    </div>
+                    <div class="form-group"><label>Name on Card</label><input type="text" class="form-control" placeholder="John Doe"></div>
+                </div>
+
+                <!-- COD Panel -->
+                <div id="panel-cod" class="payment-panel" style="display:none;">
+                    <div class="cod-info-box">
+                        <i class="fa-solid fa-money-bill-wave" style="font-size:2rem;color:var(--accent);"></i>
+                        <p>Pay with cash when your order arrives. Keep exact change ready.</p>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary btn-full" id="pay-execute-btn" onclick="handlePaymentConfirm()">
+                    <i class="fa-solid fa-lock"></i> Confirm & Place Order
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== AUTH MODAL (Phone OTP) ===== -->
+    <div class="modal-overlay" id="auth-modal">
+        <div class="modal-card modal-sm">
+            <button class="modal-close-btn" id="auth-close-btn"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-header">
+                <div class="otp-modal-icon"><i class="fa-solid fa-mobile-screen-button"></i></div>
+                <h3 id="auth-modal-title">Login / Sign Up</h3>
+                <p class="text-muted" style="font-size:.85rem;">Quick & secure login with your mobile number</p>
+            </div>
+            <div class="modal-body">
+                <form id="phone-login-form">
+                    <!-- Stage 1: Phone Number -->
+                    <div id="otp-stage-phone">
+                        <div class="form-group">
+                            <label for="login-phone-number">Mobile Number</label>
+                            <div class="phone-input-wrap">
+                                <span class="phone-prefix">+91</span>
+                                <input type="tel" id="login-phone-number" class="form-control phone-input-inner" placeholder="10-digit mobile number" maxlength="10" required>
+                            </div>
+                            <span class="phone-helper-text">Demo: 1234567890 (customer) · 9876543210 (owner) · 5551234567 (driver)</span>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full" id="send-otp-btn">
+                            <i class="fa-solid fa-paper-plane"></i> Get OTP
+                        </button>
+                    </div>
+                    <!-- Stage 2: OTP Verify -->
+                    <div id="otp-stage-verify" style="display:none;">
+                        <div class="otp-sent-label" id="otp-sent-label">OTP sent to +91 <strong id="otp-sent-number"></strong></div>
+                        <div class="form-group">
+                            <label>Enter OTP</label>
+                            <div class="otp-boxes" id="otp-boxes">
+                                <input type="text" class="otp-box" maxlength="1" id="otp-0">
+                                <input type="text" class="otp-box" maxlength="1" id="otp-1">
+                                <input type="text" class="otp-box" maxlength="1" id="otp-2">
+                                <input type="text" class="otp-box" maxlength="1" id="otp-3">
+                                <input type="text" class="otp-box" maxlength="1" id="otp-4">
+                                <input type="text" class="otp-box" maxlength="1" id="otp-5">
+                            </div>
+                            <span class="phone-helper-text" id="simulated-otp-display">Simulated OTP: <strong>123456</strong></span>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-full" id="verify-otp-btn">
+                            <i class="fa-solid fa-circle-check"></i> Verify & Login
+                        </button>
+                        <p class="auth-toggle-prompt"><a href="#" id="change-phone-btn">Change Number</a> · <a href="#" id="resend-otp-btn">Resend OTP</a></p>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Live Order Tracking Modal -->
+    <!-- ===== ORDER TRACKING MODAL ===== -->
     <div class="modal-overlay" id="tracking-modal">
         <div class="modal-card modal-lg">
             <button class="modal-close-btn" id="tracking-close-btn"><i class="fa-solid fa-xmark"></i></button>
             <div class="modal-header">
                 <h3>Live Delivery Tracking</h3>
-                <span class="tracking-order-badge" id="track-order-id">Order #12345</span>
+                <span class="status-badge status-out_for_delivery" id="track-order-id" style="margin-top:.5rem;display:inline-block;">Order #12345</span>
             </div>
             <div class="modal-body">
                 <div class="tracking-grid">
                     <div class="tracking-main">
-                        <div class="tracking-timeline" id="tracking-timeline-steps">
-                            <!-- Timeline steps -->
-                        </div>
+                        <div class="tracking-timeline" id="tracking-timeline-steps"></div>
                         <div class="eta-container">
                             <div class="eta-icon"><i class="fa-solid fa-clock"></i></div>
                             <div>
@@ -430,14 +720,9 @@
                                     <p id="track-driver-phone"><i class="fa-solid fa-phone"></i> 555-123-4567</p>
                                 </div>
                             </div>
-                            <div class="mock-map-visual">
-                                <div class="map-bg"></div>
-                                <div class="map-marker restaurant-marker"><i class="fa-solid fa-store"></i></div>
-                                <div class="map-marker driver-marker"><i class="fa-solid fa-motorcycle"></i></div>
-                                <div class="map-marker customer-marker"><i class="fa-solid fa-house"></i></div>
-                                <div class="map-route-line"></div>
-                                <span class="map-caption">Live Simulated Map</span>
-                            </div>
+                            <button class="btn btn-outline btn-full" onclick="showToast('Calling driver...', 'info')">
+                                <i class="fa-solid fa-phone"></i> Call Driver
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -445,7 +730,19 @@
         </div>
     </div>
 
-    <!-- Custom App JavaScript -->
+    <!-- ===== INFO MODAL (About, FAQ, Privacy, etc) ===== -->
+    <div class="modal-overlay" id="info-modal">
+        <div class="modal-card modal-lg">
+            <button class="modal-close-btn" id="info-modal-close"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-header">
+                <h3 id="info-modal-title">Information</h3>
+            </div>
+            <div class="modal-body" id="info-modal-body">
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom JS -->
     <script src="js/app.js"></script>
 </body>
 </html>

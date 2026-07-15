@@ -58,6 +58,54 @@ public class AuthController {
         return ResponseEntity.ok(user);
     }
 
+    @PostMapping("/send-otp")
+    public ResponseEntity<?> sendOtp(@RequestBody OtpRequest request) {
+        if (request.getPhone() == null || request.getPhone().trim().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Phone number is required.");
+        }
+        // Simulated OTP
+        String otp = "123456";
+        return ResponseEntity.ok(java.util.Map.of(
+            "message", "OTP sent successfully to " + request.getPhone(),
+            "otp", otp
+        ));
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<?> verifyOtp(@RequestBody OtpVerificationRequest request, HttpSession session) {
+        if (request.getPhone() == null || request.getOtp() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Phone and OTP are required.");
+        }
+        if (!"123456".equals(request.getOtp())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid OTP code!");
+        }
+
+        String phone = request.getPhone().trim();
+        String cleanPhone = phone.replaceAll("[^0-9]", "");
+
+        // Search repository for matching user by phone
+        Optional<User> userOpt = userRepository.findAll().stream()
+            .filter(u -> u.getPhone() != null && u.getPhone().replaceAll("[^0-9]", "").equals(cleanPhone))
+            .findFirst();
+
+        User user;
+        if (userOpt.isPresent()) {
+            user = userOpt.get();
+        } else {
+            // Auto-register new customer
+            user = new User();
+            user.setName("Customer " + phone);
+            user.setPhone(phone);
+            user.setEmail(cleanPhone + "@quickbite.com");
+            user.setPassword("otp_verified");
+            user.setRole("CUSTOMER");
+            user = userRepository.save(user);
+        }
+
+        session.setAttribute("user", user);
+        return ResponseEntity.ok(user);
+    }
+
     public static class LoginRequest {
         private String email;
         private String password;
@@ -66,5 +114,20 @@ public class AuthController {
         public void setEmail(String email) { this.email = email; }
         public String getPassword() { return password; }
         public void setPassword(String password) { this.password = password; }
+    }
+
+    public static class OtpRequest {
+        private String phone;
+        public String getPhone() { return phone; }
+        public void setPhone(String phone) { this.phone = phone; }
+    }
+
+    public static class OtpVerificationRequest {
+        private String phone;
+        private String otp;
+        public String getPhone() { return phone; }
+        public void setPhone(String phone) { this.phone = phone; }
+        public String getOtp() { return otp; }
+        public void setOtp(String otp) { this.otp = otp; }
     }
 }
