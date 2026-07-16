@@ -266,8 +266,19 @@ async function handlePhoneSubmit(e) {
     if (!phone || phone.length < 10 || !/^\d+$/.test(phone)) { showToast('Enter a valid 10-digit mobile number.', 'error'); return; }
     const btn = document.getElementById('send-otp-btn');
     btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+    
+    // Always clear old OTP input boxes first
+    for (let i = 0; i < 6; i++) {
+        const input = document.getElementById(`otp-${i}`);
+        if (input) input.value = '';
+    }
+
     try {
-        const res = await fetch(`${API_BASE}/auth/send-otp`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone }) });
+        const res = await fetch(`${API_BASE}/auth/send-otp`, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ phone }) 
+        });
         if (res.ok) {
             const data = await res.json();
             tempSentOtp = data.otp;
@@ -275,10 +286,25 @@ async function handlePhoneSubmit(e) {
             document.getElementById('otp-stage-verify').style.display = 'block';
             document.getElementById('otp-sent-number').textContent = phone;
             document.getElementById('simulated-otp-display').innerHTML = `Simulated OTP: <strong>${tempSentOtp}</strong>`;
+            
+            // Keep boxes empty and focus the first box for manual typing
             document.getElementById('otp-0').focus();
             showToast('OTP sent successfully!', 'success');
-        } else showToast('Failed to send OTP.', 'error');
-    } catch { showToast('Network error.', 'error'); }
+        } else {
+            throw new Error('Failed response');
+        }
+    } catch (err) {
+        console.warn('Network call failed, using client-side fallback:', err);
+        tempSentOtp = '123456';
+        document.getElementById('otp-stage-phone').style.display = 'none';
+        document.getElementById('otp-stage-verify').style.display = 'block';
+        document.getElementById('otp-sent-number').textContent = phone;
+        document.getElementById('simulated-otp-display').innerHTML = `Simulated OTP: <strong>${tempSentOtp}</strong>`;
+        
+        // Keep boxes empty and focus the first box for manual typing
+        document.getElementById('otp-0').focus();
+        showToast('OTP sent successfully (Simulated dev mode)!', 'success');
+    }
     btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Get OTP';
 }
 
@@ -289,7 +315,11 @@ async function handleVerifyOtpClick() {
     const btn = document.getElementById('verify-otp-btn');
     btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying...';
     try {
-        const res = await fetch(`${API_BASE}/auth/verify-otp`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone, otp: code }) });
+        const res = await fetch(`${API_BASE}/auth/verify-otp`, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ phone, otp: code }) 
+        });
         if (res.ok) {
             state.user = await res.json();
             hideModal('auth-modal');
@@ -297,8 +327,49 @@ async function handleVerifyOtpClick() {
             showToast(`Welcome, ${state.user.name || 'User'}! 🎉`, 'success');
             if (state.checkoutIntent) resumeCheckoutFlow();
             else loadViewBasedOnState();
-        } else { const t = await res.text(); showToast(t || 'Invalid OTP!', 'error'); }
-    } catch { showToast('Network error.', 'error'); }
+        } else {
+            const t = await res.text();
+            showToast(t || 'Invalid OTP!', 'error');
+        }
+    } catch (err) {
+        console.warn('Network call failed, using client-side fallback verification:', err);
+        // Fallback simulated verification
+        if (code === (tempSentOtp || '123456')) {
+            let role = 'CUSTOMER';
+            let name = 'Customer';
+            if (phone === '1234567890') {
+                role = 'CUSTOMER';
+                name = 'John Doe';
+            } else if (phone === '9876543210') {
+                role = 'OWNER';
+                name = 'Alice Smith';
+            } else if (phone === '5551234567') {
+                role = 'DRIVER';
+                name = 'Bob Rider';
+            } else if (phone === '9025879479') {
+                role = 'CUSTOMER';
+                name = 'Prem';
+            } else {
+                role = 'CUSTOMER';
+                name = 'Customer ' + phone;
+            }
+
+            state.user = {
+                id: 999,
+                name: name,
+                phone: phone,
+                email: phone.replaceAll(/[^0-9]/g, "") + '@quickbite.com',
+                role: role
+            };
+            hideModal('auth-modal');
+            handleBackToPhone();
+            showToast(`Welcome, ${state.user.name || 'User'}! 🎉 (Simulated)`, 'success');
+            if (state.checkoutIntent) resumeCheckoutFlow();
+            else loadViewBasedOnState();
+        } else {
+            showToast('Invalid OTP code!', 'error');
+        }
+    }
     btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Verify & Login';
 }
 
@@ -353,69 +424,75 @@ const MOCK_RESTAURANTS = [
 
 const MOCK_MENU_ITEMS = [
     // Pizza
-    { id:101, restaurant:{id:1,name:"Domino's Pizza"}, name:"Margherita Pizza", category:"Pizza", price:199, rating:4.3, prepTime:20, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400", description:"Classic tomato sauce, mozzarella and basil on hand-tossed crust." },
-    { id:102, restaurant:{id:1,name:"Domino's Pizza"}, name:"Pepperoni Pizza", category:"Pizza", price:349, rating:4.5, prepTime:22, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400", description:"Loaded with spicy pepperoni slices and extra mozzarella." },
-    { id:103, restaurant:{id:1,name:"Domino's Pizza"}, name:"BBQ Chicken Pizza", category:"Pizza", price:329, rating:4.4, prepTime:25, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400", description:"Smoky BBQ sauce with grilled chicken and red onions." },
+    { id:101, restaurant:{id:1,name:"Domino's Pizza"}, name:"Margherita Pizza", category:"Pizza", price:199, rating:4.3, prepTime:20, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400", description:"Classic tomato sauce, mozzarella and basil on hand-tossed crust." },
+    { id:102, restaurant:{id:1,name:"Domino's Pizza"}, name:"Pepperoni Pizza", category:"Pizza", price:349, rating:4.5, prepTime:22, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400", description:"Loaded with spicy pepperoni slices and extra mozzarella." },
+    { id:103, restaurant:{id:1,name:"Domino's Pizza"}, name:"BBQ Chicken Pizza", category:"Pizza", price:329, rating:4.4, prepTime:25, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1594007654729-407eedc4be65?w=400", description:"Smoky BBQ sauce with grilled chicken and red onions." },
     { id:104, restaurant:{id:1,name:"Domino's Pizza"}, name:"Veggie Paradise Pizza", category:"Pizza", price:279, rating:4.2, prepTime:20, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400", description:"Loaded with fresh bell peppers, mushrooms, olives and onions." },
     // Burgers
-    { id:201, restaurant:{id:2,name:"McDonald's"}, name:"McAloo Tikki", category:"Burgers", price:59, rating:4.2, prepTime:8, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400", description:"Spiced potato tikki patty with lettuce and tangy sauce." },
+    { id:201, restaurant:{id:2,name:"McDonald's"}, name:"McAloo Tikki", category:"Burgers", price:59, rating:4.2, prepTime:8, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400", description:"Spiced potato tikki patty with lettuce and tangy sauce." },
     { id:202, restaurant:{id:2,name:"McDonald's"}, name:"McChicken Burger", category:"Burgers", price:149, rating:4.3, prepTime:8, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400", description:"Crispy breaded chicken fillet with lettuce and mayo." },
-    { id:203, restaurant:{id:2,name:"McDonald's"}, name:"Big Mac", category:"Burgers", price:239, rating:4.5, prepTime:10, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400", description:"Two beef patties, special sauce, lettuce, cheese, pickles and onions." },
-    { id:204, restaurant:{id:2,name:"McDonald's"}, name:"Cheese Burst Burger", category:"Burgers", price:189, rating:4.4, prepTime:10, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400", description:"Juicy beef patty with triple cheese melted on a sesame bun." },
+    { id:203, restaurant:{id:2,name:"McDonald's"}, name:"Big Mac", category:"Burgers", price:239, rating:4.5, prepTime:10, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1550547660-d9450f859349?w=400", description:"Two beef patties, special sauce, lettuce, cheese, pickles and onions." },
+    { id:204, restaurant:{id:2,name:"McDonald's"}, name:"Cheese Burst Burger", category:"Burgers", price:189, rating:4.4, prepTime:10, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1596956470007-2bf6095e7e16?w=400", description:"Juicy beef patty with triple cheese melted on a sesame bun." },
     // Fried Chicken
     { id:301, restaurant:{id:3,name:"KFC"}, name:"Original Recipe Chicken (2pc)", category:"Fried Chicken", price:219, rating:4.4, prepTime:12, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=400", description:"Crispy fried chicken in KFC's legendary secret recipe of 11 herbs and spices." },
-    { id:302, restaurant:{id:3,name:"KFC"}, name:"Hot & Crispy Strips (3pc)", category:"Fried Chicken", price:179, rating:4.3, prepTime:10, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=400", description:"Tender chicken strips in a spicy crispy coating." },
-    { id:303, restaurant:{id:3,name:"KFC"}, name:"Popcorn Chicken", category:"Fried Chicken", price:149, rating:4.4, prepTime:8, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=400", description:"Bite-sized crispy chicken bites seasoned with signature spices." },
+    { id:302, restaurant:{id:3,name:"KFC"}, name:"Hot & Crispy Strips (3pc)", category:"Fried Chicken", price:179, rating:4.3, prepTime:10, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1562967914-608f82629710?w=400", description:"Tender chicken strips in a spicy crispy coating." },
+    { id:303, restaurant:{id:3,name:"KFC"}, name:"Popcorn Chicken", category:"Fried Chicken", price:149, rating:4.4, prepTime:8, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1585325701956-60dd9c8553bc?w=400", description:"Bite-sized crispy chicken bites seasoned with signature spices." },
     // Biryani
-    { id:401, restaurant:{id:5,name:"Behrouz Biryani"}, name:"Nawabi Chicken Biryani", category:"Biryani", price:399, rating:4.8, prepTime:40, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400", description:"Royal Nawabi-style dum biryani with saffron, rose water and tender chicken." },
+    { id:401, restaurant:{id:5,name:"Behrouz Biryani"}, name:"Nawabi Chicken Biryani", category:"Biryani", price:399, rating:4.8, prepTime:40, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1633945274405-b6c8069047b0?w=400", description:"Royal Nawabi-style dum biryani with saffron, rose water and tender chicken." },
     { id:402, restaurant:{id:5,name:"Behrouz Biryani"}, name:"Persian Mutton Biryani", category:"Biryani", price:499, rating:4.9, prepTime:45, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400", description:"Slow-dum cooked with barberry, almonds and aromatic Persian spices." },
-    { id:403, restaurant:{id:5,name:"Behrouz Biryani"}, name:"Prawn Biryani", category:"Biryani", price:449, rating:4.7, prepTime:40, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400", description:"Juicy prawns cooked in a coconut-based biryani masala." },
-    { id:404, restaurant:{id:5,name:"Behrouz Biryani"}, name:"Veg Dum Biryani", category:"Biryani", price:299, rating:4.4, prepTime:35, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400", description:"Fragrant basmati rice with seasonal vegetables, saffron and whole spices." },
+    { id:403, restaurant:{id:5,name:"Behrouz Biryani"}, name:"Prawn Biryani", category:"Biryani", price:449, rating:4.7, prepTime:40, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=400", description:"Juicy prawns cooked in a coconut-based biryani masala." },
+    { id:404, restaurant:{id:5,name:"Behrouz Biryani"}, name:"Veg Dum Biryani", category:"Biryani", price:299, rating:4.4, prepTime:35, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400", description:"Fragrant basmati rice with seasonal vegetables, saffron and whole spices." },
     // South Indian
     { id:501, restaurant:{id:4,name:"Annapoorna"}, name:"Ghee Roast Dosa", category:"South Indian", price:89, rating:4.5, prepTime:10, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400", description:"Extra crispy dosa roasted in pure ghee, served with chutney and sambar." },
-    { id:502, restaurant:{id:4,name:"Annapoorna"}, name:"Idly Sambar (3 pcs)", category:"South Indian", price:59, rating:4.4, prepTime:5, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400", description:"Soft steamed rice cakes served with aromatic sambar and chutneys." },
-    { id:503, restaurant:{id:4,name:"Annapoorna"}, name:"Masala Dosa", category:"South Indian", price:79, rating:4.5, prepTime:10, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400", description:"Golden crispy dosa filled with spiced potato masala." },
-    { id:504, restaurant:{id:4,name:"Annapoorna"}, name:"Vada Sambar (2 pcs)", category:"South Indian", price:69, rating:4.3, prepTime:7, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400", description:"Crispy medu vada dunked in steaming sambar." },
+    { id:502, restaurant:{id:4,name:"Annapoorna"}, name:"Idly Sambar (3 pcs)", category:"South Indian", price:59, rating:4.4, prepTime:5, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=400", description:"Soft steamed rice cakes served with aromatic sambar and chutneys." },
+    { id:503, restaurant:{id:4,name:"Annapoorna"}, name:"Masala Dosa", category:"South Indian", price:79, rating:4.5, prepTime:10, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1630383249896-424e482df921?w=400", description:"Golden crispy dosa filled with spiced potato masala." },
+    { id:504, restaurant:{id:4,name:"Annapoorna"}, name:"Vada Sambar (2 pcs)", category:"South Indian", price:69, rating:4.3, prepTime:7, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400", description:"Crispy medu vada dunked in steaming sambar." },
     // Chinese
-    { id:601, restaurant:{id:6,name:"Wok Express"}, name:"Kung Pao Chicken", category:"Chinese", price:259, rating:4.5, prepTime:15, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400", description:"Tender chicken with peanuts and dried chillies in bold Kung Pao sauce." },
+    { id:601, restaurant:{id:6,name:"Wok Express"}, name:"Kung Pao Chicken", category:"Chinese", price:259, rating:4.5, prepTime:15, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1525755662778-989d0524087e?w=400", description:"Tender chicken with peanuts and dried chillies in bold Kung Pao sauce." },
     { id:602, restaurant:{id:6,name:"Wok Express"}, name:"Hakka Noodles", category:"Chinese", price:199, rating:4.4, prepTime:12, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400", description:"Classic stir-fried egg noodles with vegetables and soy sauce." },
-    { id:603, restaurant:{id:6,name:"Wok Express"}, name:"Veg Manchurian", category:"Chinese", price:199, rating:4.4, prepTime:15, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400", description:"Crispy vegetable balls in spicy tangy Manchurian sauce." },
-    { id:604, restaurant:{id:6,name:"Wok Express"}, name:"Dim Sum Basket", category:"Chinese", price:249, rating:4.6, prepTime:15, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400", description:"Steamed crystal dumplings filled with prawns, pork and vegetables." },
+    { id:603, restaurant:{id:6,name:"Wok Express"}, name:"Veg Manchurian", category:"Chinese", price:199, rating:4.4, prepTime:15, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1600628421055-4d30de868b8f?w=400", description:"Crispy vegetable balls in spicy tangy Manchurian sauce." },
+    { id:604, restaurant:{id:6,name:"Wok Express"}, name:"Dim Sum Basket", category:"Chinese", price:249, rating:4.6, prepTime:15, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1563245372-f21724e3856d?w=400", description:"Steamed crystal dumplings filled with prawns, pork and vegetables." },
     // North Indian
-    { id:701, restaurant:{id:7,name:"Punjab Grill"}, name:"Butter Chicken", category:"North Indian", price:329, rating:4.7, prepTime:30, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400", description:"Tender chicken in rich creamy tomato-butter gravy." },
-    { id:702, restaurant:{id:7,name:"Punjab Grill"}, name:"Dal Makhani", category:"North Indian", price:249, rating:4.6, prepTime:25, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400", description:"Black lentils slow-cooked overnight with butter and cream." },
+    { id:701, restaurant:{id:7,name:"Punjab Grill"}, name:"Butter Chicken", category:"North Indian", price:329, rating:4.7, prepTime:30, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400", description:"Tender chicken in rich creamy tomato-butter gravy." },
+    { id:702, restaurant:{id:7,name:"Punjab Grill"}, name:"Dal Makhani", category:"North Indian", price:249, rating:4.6, prepTime:25, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400", description:"Black lentils slow-cooked overnight with butter and cream." },
     { id:703, restaurant:{id:7,name:"Punjab Grill"}, name:"Chicken Tikka", category:"North Indian", price:349, rating:4.8, prepTime:25, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400", description:"Succulent chicken chunks marinated in spiced yogurt and grilled in tandoor." },
     { id:704, restaurant:{id:7,name:"Punjab Grill"}, name:"Palak Paneer", category:"North Indian", price:279, rating:4.5, prepTime:20, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400", description:"Fresh cottage cheese cubes in vibrant spinach gravy." },
     // Sandwiches
-    { id:801, restaurant:{id:8,name:"Subway"}, name:"Veggie Delight Sub", category:"Sandwiches", price:199, rating:4.0, prepTime:5, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400", description:"Fresh vegetables in a honey-oat bread with sauce." },
+    { id:801, restaurant:{id:8,name:"Subway"}, name:"Veggie Delight Sub", category:"Sandwiches", price:199, rating:4.0, prepTime:5, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1509722747041-616f39b57569?w=400", description:"Fresh vegetables in a honey-oat bread with sauce." },
     { id:802, restaurant:{id:8,name:"Subway"}, name:"Chicken Teriyaki Sub", category:"Sandwiches", price:299, rating:4.3, prepTime:7, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400", description:"Tender teriyaki chicken strips with fresh vegetables." },
-    { id:803, restaurant:{id:8,name:"Subway"}, name:"Paneer Tikka Sub", category:"Sandwiches", price:259, rating:4.2, prepTime:7, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400", description:"Spiced paneer tikka with mint mayo and fresh veggies." },
-    { id:804, restaurant:{id:8,name:"Subway"}, name:"Tuna Sub", category:"Sandwiches", price:319, rating:4.4, prepTime:5, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400", description:"Classic tuna salad with chipotle sauce in white bread." },
+    { id:803, restaurant:{id:8,name:"Subway"}, name:"Paneer Tikka Sub", category:"Sandwiches", price:259, rating:4.2, prepTime:7, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1554520735-0a6b8b6ce8b7?w=400", description:"Spiced paneer tikka with mint mayo and fresh veggies." },
+    { id:804, restaurant:{id:8,name:"Subway"}, name:"Tuna Sub", category:"Sandwiches", price:319, rating:4.4, prepTime:5, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1521390188846-e2a3a97453a0?w=400", description:"Classic tuna salad with chipotle sauce in white bread." },
     // Shawarma
     { id:901, restaurant:{id:9,name:"Shawarma Palace"}, name:"Chicken Shawarma", category:"Shawarma", price:149, rating:4.5, prepTime:10, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400", description:"Classic chicken shawarma with garlic sauce and pickles in pita." },
-    { id:902, restaurant:{id:9,name:"Shawarma Palace"}, name:"Mutton Shawarma", category:"Shawarma", price:199, rating:4.6, prepTime:12, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400", description:"Succulent mutton strips in Lebanese spices with tzatziki." },
-    { id:903, restaurant:{id:9,name:"Shawarma Palace"}, name:"Veg Shawarma", category:"Shawarma", price:129, rating:4.2, prepTime:10, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400", description:"Falafel and roasted vegetables with hummus in warm pita." },
-    { id:904, restaurant:{id:9,name:"Shawarma Palace"}, name:"Shawarma Plate", category:"Shawarma", price:299, rating:4.7, prepTime:15, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400", description:"Mixed shawarma with rice, garlic sauce and salad." },
+    { id:902, restaurant:{id:9,name:"Shawarma Palace"}, name:"Mutton Shawarma", category:"Shawarma", price:199, rating:4.6, prepTime:12, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1574591584721-0f2f0b6e7f26?w=400", description:"Succulent mutton strips in Lebanese spices with tzatziki." },
+    { id:903, restaurant:{id:9,name:"Shawarma Palace"}, name:"Veg Shawarma", category:"Shawarma", price:129, rating:4.2, prepTime:10, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1561651823-34feb02250e4?w=400", description:"Falafel and roasted vegetables with hummus in warm pita." },
+    { id:904, restaurant:{id:9,name:"Shawarma Palace"}, name:"Shawarma Plate", category:"Shawarma", price:299, rating:4.7, prepTime:15, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400", description:"Mixed shawarma with rice, garlic sauce and salad." },
     // Rolls
     { id:1001, restaurant:{id:10,name:"Kaati Zone"}, name:"Chicken Egg Roll", category:"Rolls", price:149, rating:4.4, prepTime:8, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1604909052743-94e838986d24?w=400", description:"Spiced chicken with beaten egg and green chutney in a paratha roll." },
-    { id:1002, restaurant:{id:10,name:"Kaati Zone"}, name:"Paneer Tikka Roll", category:"Rolls", price:139, rating:4.3, prepTime:8, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1604909052743-94e838986d24?w=400", description:"Marinated paneer tikka with mint chutney in grilled paratha." },
-    { id:1003, restaurant:{id:10,name:"Kaati Zone"}, name:"Mutton Seekh Roll", category:"Rolls", price:179, rating:4.6, prepTime:10, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1604909052743-94e838986d24?w=400", description:"Juicy mutton seekh kebab with onions and green chutney." },
-    { id:1004, restaurant:{id:10,name:"Kaati Zone"}, name:"Veg Kathi Roll", category:"Rolls", price:119, rating:4.1, prepTime:7, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1604909052743-94e838986d24?w=400", description:"Crispy vegetables in mint chutney in a whole-wheat paratha." },
+    { id:1002, restaurant:{id:10,name:"Kaati Zone"}, name:"Paneer Tikka Roll", category:"Rolls", price:139, rating:4.3, prepTime:8, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400", description:"Marinated paneer tikka with mint chutney in grilled paratha." },
+    { id:1003, restaurant:{id:10,name:"Kaati Zone"}, name:"Mutton Seekh Roll", category:"Rolls", price:179, rating:4.6, prepTime:10, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1529693662653-9d480da3337e?w=400", description:"Juicy mutton seekh kebab with onions and green chutney." },
+    { id:1004, restaurant:{id:10,name:"Kaati Zone"}, name:"Veg Kathi Roll", category:"Rolls", price:119, rating:4.1, prepTime:7, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1543339308-43e59d6b73a6?w=400", description:"Crispy vegetables in mint chutney in a whole-wheat paratha." },
     // Ice Cream
     { id:1101, restaurant:{id:11,name:"Baskin Robbins"}, name:"Chocolate Fudge Sundae", category:"Ice Cream", price:199, rating:4.5, prepTime:3, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400", description:"Rich chocolate ice cream with hot fudge, whipped cream and cherry." },
-    { id:1102, restaurant:{id:11,name:"Baskin Robbins"}, name:"Mango Tango Sundae", category:"Ice Cream", price:179, rating:4.6, prepTime:3, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400", description:"Mango ice cream with mango coulis and fresh mango pieces." },
-    { id:1103, restaurant:{id:11,name:"Baskin Robbins"}, name:"Strawberry Bliss Scoop", category:"Ice Cream", price:149, rating:4.4, prepTime:2, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400", description:"Fresh strawberry ice cream with real fruit pieces in waffle cone." },
-    { id:1104, restaurant:{id:11,name:"Baskin Robbins"}, name:"Classic Vanilla Scoop", category:"Ice Cream", price:99, rating:4.3, prepTime:2, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400", description:"Premium Madagascar vanilla bean ice cream in a crispy waffle cone." },
+    { id:1102, restaurant:{id:11,name:"Baskin Robbins"}, name:"Mango Tango Sundae", category:"Ice Cream", price:179, rating:4.6, prepTime:3, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=400", description:"Mango ice cream with mango coulis and fresh mango pieces." },
+    { id:1103, restaurant:{id:11,name:"Baskin Robbins"}, name:"Strawberry Bliss Scoop", category:"Ice Cream", price:149, rating:4.4, prepTime:2, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=400", description:"Fresh strawberry ice cream with real fruit pieces in waffle cone." },
+    { id:1104, restaurant:{id:11,name:"Baskin Robbins"}, name:"Classic Vanilla Scoop", category:"Ice Cream", price:99, rating:4.3, prepTime:2, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1576506295286-5cda18df43e7?w=400", description:"Premium Madagascar vanilla bean ice cream in a crispy waffle cone." },
     // Desserts
     { id:1201, restaurant:{id:12,name:"Corner House"}, name:"Death by Chocolate", category:"Desserts", price:299, rating:4.9, prepTime:5, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1564355808539-22fda35bed7e?w=400", description:"Multiple layers of chocolate cake, mousse, fudge and ice cream." },
     { id:1202, restaurant:{id:12,name:"Corner House"}, name:"Tiramisu", category:"Desserts", price:279, rating:4.7, prepTime:5, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1567327613485-fbc7bf196197?w=400", description:"Classic Italian espresso-soaked ladyfingers with mascarpone." },
     { id:1203, restaurant:{id:12,name:"Corner House"}, name:"Waffles with Ice Cream", category:"Desserts", price:249, rating:4.6, prepTime:8, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=400", description:"Crispy Belgian waffles with vanilla ice cream and maple syrup." },
     // Drinks
-    { id:1301, restaurant:{id:12,name:"Corner House"}, name:"Cold Coffee", category:"Drinks", price:149, rating:4.6, prepTime:5, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1559496417-e7f25cb247f3?w=400", description:"Creamy blended cold coffee with ice cream and chocolate syrup." },
+    { id:1301, restaurant:{id:12,name:"Corner House"}, name:"Cold Coffee", category:"Drinks", price:149, rating:4.6, prepTime:5, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400", description:"Creamy blended cold coffee with ice cream and chocolate syrup." },
     { id:1302, restaurant:{id:12,name:"Corner House"}, name:"Oreo Milkshake", category:"Drinks", price:179, rating:4.7, prepTime:5, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=400", description:"Thick blended Oreo milkshake with vanilla ice cream and whipped cream." },
-    { id:1303, restaurant:{id:5,name:"Behrouz Biryani"}, name:"Mango Lassi", category:"Drinks", price:99, rating:4.7, prepTime:5, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400", description:"Refreshing Alphonso mango and creamy yogurt with cardamom." },
+    { id:1306, restaurant:{id:12,name:"Corner House"}, name:"Coca-Cola", category:"Drinks", price:49, rating:4.5, prepTime:2, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1554866585-cd94860890b7?w=400", description:"Iconic cola beverage, perfect for any meal." },
+    { id:1307, restaurant:{id:12,name:"Corner House"}, name:"Sprite", category:"Drinks", price:49, rating:4.5, prepTime:2, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1624517452488-04869289c4ca?w=400", description:"Lemon-lime soda, crisp and clear taste." },
+    { id:1308, restaurant:{id:12,name:"Corner House"}, name:"Fanta", category:"Drinks", price:49, rating:4.5, prepTime:2, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1567620832903-9fc6debc209f?w=400", description:"Fruit-flavored orange soda for a fun drink." },
+    { id:1310, restaurant:{id:12,name:"Corner House"}, name:"Mango Juice", category:"Drinks", price:79, rating:4.7, prepTime:3, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1546173159-315724a31696?w=400", description:"Sweet mango nectar made from ripe mangoes." },
+    { id:1311, restaurant:{id:12,name:"Corner House"}, name:"Orange Juice", category:"Drinks", price:79, rating:4.7, prepTime:3, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=400", description:"Fresh orange juice, vitamin C packed." },
+    { id:1312, restaurant:{id:12,name:"Corner House"}, name:"Apple Juice", category:"Drinks", price:79, rating:4.7, prepTime:3, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1568702503-ef4c2ef728e7?w=400", description:"Crisp, sweet apple juice." },
+    { id:1313, restaurant:{id:12,name:"Corner House"}, name:"Water Bottle", category:"Drinks", price:30, rating:4.8, prepTime:1, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=400", description:"Pure bottled water, stay hydrated." },
     // Tamil Nadu Foods
-    { id:1401, restaurant:{id:4,name:"Annapoorna"}, name:"Chettinad Chicken Curry", category:"Tamil Nadu Foods", price:299, rating:4.7, prepTime:30, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=400", description:"Fiery Chettinad curry with aromatic whole spices and coconut." },
+    { id:1401, restaurant:{id:4,name:"Annapoorna"}, name:"Chettinad Chicken Curry", category:"Tamil Nadu Foods", price:299, rating:4.7, prepTime:30, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400", description:"Fiery Chettinad curry with aromatic whole spices and coconut." },
     { id:1402, restaurant:{id:4,name:"Annapoorna"}, name:"Kothu Parotta", category:"Tamil Nadu Foods", price:249, rating:4.7, prepTime:20, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1567337710282-00832b415979?w=400", description:"Minced parotta mixed with egg, chicken and aromatic spices." },
     { id:1403, restaurant:{id:4,name:"Annapoorna"}, name:"Filter Coffee", category:"Tamil Nadu Foods", price:40, rating:4.8, prepTime:3, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1559496417-e7f25cb247f3?w=400", description:"Authentic South Indian decoction filter coffee with frothy milk." }
 ];
@@ -731,7 +808,7 @@ function renderFoodCard(item, restaurantName = '') {
                 <div class="veg-indicator ${item.isVeg ? 'veg' : 'nonveg'}">
                     <i class="fa-solid fa-circle" style="font-size:0.45rem;"></i>
                 </div>
-                <img src="${item.imageUrl || 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=300'}" alt="${item.name}" class="food-card-img" loading="lazy">
+                <img src="${item.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300'}" alt="${item.name}" class="food-card-img" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300';">
                 <button class="wishlist-heart-btn ${inWishlist ? 'favorited' : ''}" data-id="${item.id}" onclick="toggleWishlistItem(${item.id}, event)">
                     <i class="fa-${inWishlist ? 'solid' : 'regular'} fa-heart"></i>
                 </button>
@@ -969,7 +1046,7 @@ function renderMenuItemCard(item) {
         <div class="menu-item-card" data-id="${item.id}">
             <div class="food-card-img-wrap">
                 <div class="veg-indicator ${item.isVeg ? 'veg' : 'nonveg'}"><i class="fa-solid fa-circle" style="font-size:.45rem;"></i></div>
-                <img src="${item.imageUrl || 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400'}" alt="${item.name}" class="menu-item-img" loading="lazy">
+                <img src="${item.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'}" alt="${item.name}" class="menu-item-img" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400';">
                 <button class="wishlist-heart-btn ${inWishlist ? 'favorited' : ''}" data-id="${item.id}" onclick="toggleWishlistItem(${item.id}, event)">
                     <i class="fa-${inWishlist ? 'solid' : 'regular'} fa-heart"></i>
                 </button>
