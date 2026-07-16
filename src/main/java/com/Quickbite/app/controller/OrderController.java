@@ -157,6 +157,40 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Order not found");
     }
 
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<?> cancelOrder(@PathVariable Long id, HttpSession session) {
+        User customer = (User) session.getAttribute("user");
+        if (customer == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not logged in");
+        }
+        Optional<Order> orderOpt = orderRepository.findById(id);
+        if (orderOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Order not found");
+        }
+        Order order = orderOpt.get();
+        // Security check: only the customer who placed the order or an admin/owner can cancel it.
+        if (!order.getCustomer().getId().equals(customer.getId()) && !"ADMIN".equals(customer.getRole())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied.");
+        }
+        
+        if (!"PENDING".equalsIgnoreCase(order.getStatus())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Cannot cancel order. It is already " + order.getStatus().toLowerCase() + ".");
+        }
+        
+        order.setStatus("CANCELLED");
+        Order savedOrder = orderRepository.save(order);
+        
+        // Update tracking status to completed/delivered if tracking exists
+        Optional<DeliveryTracking> trackingOpt = deliveryTrackingRepository.findByOrderId(order.getId());
+        if (trackingOpt.isPresent()) {
+            DeliveryTracking tracking = trackingOpt.get();
+            tracking.setStatus("DELIVERED"); // end tracking
+            deliveryTrackingRepository.save(tracking);
+        }
+        
+        return ResponseEntity.ok(savedOrder);
+    }
+
     // Request structures
     public static class OrderRequest {
         private Long restaurantId;

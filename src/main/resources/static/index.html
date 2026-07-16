@@ -12,7 +12,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="css/index.css?v=20260715">
 </head>
 <body>
     <!-- Toast Notifications -->
@@ -21,6 +21,11 @@
     <!-- ===== HEADER ===== -->
     <header class="app-header" id="app-header">
         <div class="header-container">
+            <!-- Home Button -->
+            <a href="#" class="home-icon-btn" id="home-icon-btn" title="Home" onclick="navigateTo('landing'); event.preventDefault();">
+                <i class="fa-solid fa-house"></i>
+            </a>
+
             <!-- Logo -->
             <a href="#" class="app-logo" id="logo-btn">
                 <i class="fa-solid fa-bolt logo-icon"></i>
@@ -154,12 +159,18 @@
             <div class="container">
                 <div class="category-strip" id="category-strip">
                     <button class="cat-pill active" data-cat="All" onclick="filterByCategory('All')">🍽️ All</button>
-                    <button class="cat-pill" data-cat="Tamil Nadu Foods" onclick="filterByCategory('Tamil Nadu Foods')">🌿 Tamil Nadu</button>
-                    <button class="cat-pill" data-cat="Biryani" onclick="filterByCategory('Biryani')">🍚 Biryani</button>
                     <button class="cat-pill" data-cat="Pizza" onclick="filterByCategory('Pizza')">🍕 Pizza</button>
                     <button class="cat-pill" data-cat="Burgers" onclick="filterByCategory('Burgers')">🍔 Burgers</button>
                     <button class="cat-pill" data-cat="Fried Chicken" onclick="filterByCategory('Fried Chicken')">🍗 Fried Chicken</button>
+                    <button class="cat-pill" data-cat="Biryani" onclick="filterByCategory('Biryani')">🍚 Biryani</button>
+                    <button class="cat-pill" data-cat="South Indian" onclick="filterByCategory('South Indian')">🥘 South Indian</button>
+                    <button class="cat-pill" data-cat="Tamil Nadu Foods" onclick="filterByCategory('Tamil Nadu Foods')">🌿 Tamil Nadu</button>
                     <button class="cat-pill" data-cat="Chinese" onclick="filterByCategory('Chinese')">🥡 Chinese</button>
+                    <button class="cat-pill" data-cat="North Indian" onclick="filterByCategory('North Indian')">🫕 North Indian</button>
+                    <button class="cat-pill" data-cat="Sandwiches" onclick="filterByCategory('Sandwiches')">🥪 Sandwiches</button>
+                    <button class="cat-pill" data-cat="Shawarma" onclick="filterByCategory('Shawarma')">🌯 Shawarma</button>
+                    <button class="cat-pill" data-cat="Rolls" onclick="filterByCategory('Rolls')">🌮 Rolls</button>
+                    <button class="cat-pill" data-cat="Ice Cream" onclick="filterByCategory('Ice Cream')">🍦 Ice Cream</button>
                     <button class="cat-pill" data-cat="Desserts" onclick="filterByCategory('Desserts')">🍮 Desserts</button>
                     <button class="cat-pill" data-cat="Drinks" onclick="filterByCategory('Drinks')">🥤 Drinks</button>
                 </div>
@@ -203,7 +214,7 @@
 
                 <!-- Featured Items Section -->
                 <div class="section-header" style="margin-top: 3rem;">
-                    <h2 class="section-title-main">Popular Dishes Today</h2>
+                    <h2 class="section-title-main" id="featured-items-title">Popular Dishes Today</h2>
                 </div>
                 <div class="featured-items-grid" id="featured-items-grid">
                     <!-- dynamically populated -->
@@ -394,9 +405,15 @@
             </div>
 
             <div class="container" style="padding-top: 1.5rem;">
-                <!-- Menu Category Filter -->
-                <div class="menu-category-nav" id="menu-category-nav">
-                    <button class="cat-pill active" data-cat="All" onclick="filterMenuItems('All')">All Items</button>
+                <!-- Menu Category & Search Filters -->
+                <div class="menu-filters-bar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
+                    <div class="menu-category-nav" id="menu-category-nav" style="margin-bottom:0;">
+                        <button class="cat-pill active" data-cat="All" onclick="filterMenuItems('All')">All Items</button>
+                    </div>
+                    <div class="menu-search-box" style="position:relative; max-width:300px; width:100%;">
+                        <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); color:var(--text-muted);"></i>
+                        <input type="text" id="menu-item-search" placeholder="Search in menu..." oninput="handleMenuItemSearch()" style="width:100%; padding:0.6rem 1rem 0.6rem 2.5rem; background:var(--bg-input); border:1.5px solid var(--border); border-radius:var(--radius-full); font-size:0.9rem; outline:none; transition:var(--transition);">
+                    </div>
                 </div>
 
                 <div class="menu-layout">
@@ -504,61 +521,141 @@
 
     </main>
 
-    <!-- ===== CART DRAWER ===== -->
-    <div class="cart-drawer-overlay" id="cart-drawer-overlay"></div>
-    <div class="cart-drawer" id="cart-drawer">
-        <div class="cart-drawer-header">
-            <h3><i class="fa-solid fa-bag-shopping"></i> Your Cart</h3>
-            <button class="modal-close-btn" id="cart-close-btn"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div id="guest-cart-note" style="display:none;" class="cart-note">
-            <i class="fa-solid fa-circle-info"></i> You can add items and sign in at checkout.
-        </div>
-        <div class="cart-items-list" id="cart-items-container"></div>
-        <div class="cart-empty-state" id="cart-empty" style="display:none;">
-            <i class="fa-solid fa-bag-shopping" style="font-size:3rem;color:var(--text-muted);margin-bottom:1rem;"></i>
-            <p>Your cart is empty</p>
-            <button class="btn btn-outline btn-sm" onclick="closeCartDrawer()">Browse Restaurants</button>
-        </div>
-        <div class="cart-footer" id="cart-footer" style="display:none;">
-            <!-- Coupon -->
-            <div class="coupon-row">
-                <div class="coupon-input-wrap">
-                    <i class="fa-solid fa-tag coupon-icon"></i>
-                    <input type="text" id="coupon-code-input" class="coupon-input" placeholder="Enter coupon code">
+    <!-- ===== CART MODAL (centered popup) ===== -->
+    <div class="cart-modal-overlay" id="cart-drawer-overlay"></div>
+    <div class="cart-modal" id="cart-drawer">
+        <!-- Modal Header -->
+        <div class="cart-modal-header">
+            <div class="cart-modal-title-wrap">
+                <div class="cart-modal-icon-wrap">
+                    <i class="fa-solid fa-bag-shopping"></i>
                 </div>
-                <button class="btn btn-outline btn-sm" id="apply-coupon-btn">Apply</button>
+                <div>
+                    <h3 class="cart-modal-title">Your Cart</h3>
+                    <span class="cart-modal-subtitle" id="cart-header-count">0 items selected</span>
+                </div>
             </div>
-            <div class="coupon-message" id="coupon-message"></div>
+            <button class="cart-modal-close-btn" id="cart-close-btn" aria-label="Close cart">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
 
-            <!-- Price Breakdown -->
-            <div class="cart-price-breakdown">
-                <div class="price-row"><span>Item Total</span><span id="cart-item-total">₹0</span></div>
-                <div class="price-row"><span>Delivery Charge</span><span id="cart-delivery-charge">₹30</span></div>
-                <div class="price-row"><span>GST (5%)</span><span id="cart-gst">₹0</span></div>
-                <div class="price-row"><span>Platform Fee</span><span id="cart-platform-fee">₹2</span></div>
-                <div class="price-row discount-row" id="cart-discount-row" style="display:none;">
-                    <span>Coupon Discount</span><span id="cart-discount-amount" class="text-success">-₹0</span>
+        <!-- Guest Note -->
+        <div id="guest-cart-note" style="display:none;" class="cart-guest-note">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>You can add items and sign in at checkout — no account needed to browse!</span>
+        </div>
+
+        <!-- Modal Body: two-column on desktop -->
+        <div class="cart-modal-body">
+
+            <!-- LEFT: Items List -->
+            <div class="cart-modal-items-col">
+                <div class="cart-items-scroll" id="cart-items-container"></div>
+                <div class="cart-empty-state" id="cart-empty" style="display:none;">
+                    <div class="cart-empty-icon">
+                        <i class="fa-solid fa-bag-shopping"></i>
+                    </div>
+                    <h4>Your cart is empty</h4>
+                    <p>Add items from a restaurant to get started</p>
+                    <button class="btn btn-primary" onclick="closeCartDrawer()">
+                        <i class="fa-solid fa-utensils"></i> Browse Restaurants
+                    </button>
                 </div>
-                <div class="price-row total-row"><span>Grand Total</span><span id="cart-grand-total">₹0</span></div>
             </div>
 
-            <!-- Checkout Address -->
-            <form id="checkout-form">
-                <div class="form-group">
-                    <label>Delivery Address</label>
-                    <input type="text" id="checkout-address" class="form-control" placeholder="Enter full delivery address" required>
+            <!-- RIGHT: Order Summary -->
+            <div class="cart-modal-summary-col" id="cart-footer" style="display:none;">
+
+                <!-- Coupon Section -->
+                <div class="cart-coupon-section">
+                    <div class="cart-coupon-label">
+                        <i class="fa-solid fa-percent"></i> Apply Coupon
+                    </div>
+                    <div class="coupon-row">
+                        <div class="coupon-input-wrap">
+                            <i class="fa-solid fa-tag coupon-icon"></i>
+                            <input type="text" id="coupon-code-input" class="coupon-input" placeholder="Enter coupon code (e.g. WELCOME50)">
+                        </div>
+                        <button class="btn btn-outline btn-sm" id="apply-coupon-btn">Apply</button>
+                    </div>
+                    <div class="coupon-message" id="coupon-message"></div>
+                    <div class="coupon-chips">
+                        <span class="coupon-chip" onclick="document.getElementById('coupon-code-input').value='WELCOME50'">WELCOME50</span>
+                        <span class="coupon-chip" onclick="document.getElementById('coupon-code-input').value='SAVEMORE'">SAVEMORE</span>
+                        <span class="coupon-chip" onclick="document.getElementById('coupon-code-input').value='FLAT20'">FLAT20</span>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Contact Number</label>
-                    <input type="tel" id="checkout-phone" class="form-control" placeholder="10-digit mobile number" required>
+
+                <!-- Order Summary Card -->
+                <div class="cart-order-summary">
+                    <div class="cart-summary-heading">
+                        <i class="fa-solid fa-receipt"></i> Order Summary
+                    </div>
+                    <div class="cart-summary-meta-row">
+                        <span><i class="fa-solid fa-clock"></i> <span id="cart-summary-eta">Estimated: -- min</span></span>
+                        <span><i class="fa-solid fa-box"></i> <span id="cart-summary-count">0 items</span></span>
+                    </div>
+                    <div class="cart-price-breakdown">
+                        <div class="price-row">
+                            <span>Item Total</span>
+                            <span id="cart-item-total">₹0</span>
+                        </div>
+                        <div class="price-row">
+                            <span>Delivery Charge</span>
+                            <span id="cart-delivery-charge" class="free-delivery-tag">₹30</span>
+                        </div>
+                        <div class="price-row">
+                            <span>GST (5%)</span>
+                            <span id="cart-gst">₹0</span>
+                        </div>
+                        <div class="price-row">
+                            <span>Platform Fee</span>
+                            <span id="cart-platform-fee">₹2</span>
+                        </div>
+                        <div class="price-row discount-row" id="cart-discount-row" style="display:none;">
+                            <span><i class="fa-solid fa-tag"></i> Coupon Savings</span>
+                            <span id="cart-discount-amount" class="text-success">-₹0</span>
+                        </div>
+                        <div class="price-row total-row">
+                            <span>Grand Total</span>
+                            <span id="cart-grand-total">₹0</span>
+                        </div>
+                    </div>
+                    <div class="cart-savings-banner" id="cart-savings-banner" style="display:none;">
+                        <i class="fa-solid fa-piggy-bank"></i>
+                        <span id="cart-savings-text">You're saving ₹0 on this order!</span>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-primary btn-full checkout-btn">
-                    <i class="fa-solid fa-lock"></i> Proceed to Checkout
-                </button>
-            </form>
-        </div>
-    </div>
+
+                <!-- Delivery Address -->
+                <form id="checkout-form" class="cart-address-form">
+                    <div class="cart-address-heading">
+                        <i class="fa-solid fa-location-dot"></i> Delivery Details
+                    </div>
+                    <div class="form-group">
+                        <label>Customer Name</label>
+                        <input type="text" id="checkout-name" class="form-control" placeholder="Enter your name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Delivery Address</label>
+                        <input type="text" id="checkout-address" class="form-control" placeholder="House/Flat no., Street, Area, City" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Number</label>
+                        <input type="tel" id="checkout-phone" class="form-control" placeholder="10-digit mobile number" required>
+                    </div>
+                    <button type="submit" class="cart-checkout-btn">
+                        <span class="checkout-btn-left">
+                            <i class="fa-solid fa-lock"></i> Proceed to Checkout
+                        </span>
+                        <span class="checkout-btn-total" id="checkout-btn-total">₹0</span>
+                    </button>
+                </form>
+
+            </div><!-- end summary col -->
+        </div><!-- end modal body -->
+    </div><!-- end cart-modal -->
 
     <!-- ===== FOOD DETAIL MODAL ===== -->
     <div class="modal-overlay" id="product-detail-modal">
@@ -743,6 +840,6 @@
     </div>
 
     <!-- Custom JS -->
-    <script src="js/app.js"></script>
+    <script src="js/app.js?v=20260715"></script>
 </body>
 </html>

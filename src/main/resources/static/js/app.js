@@ -22,6 +22,8 @@ let state = {
     customerFilters: { veg: false, nonveg: false, rating: false, fast: false, offers: false },
     activeCategory: 'All',
     customerCategory: 'All',
+    selectedMenuCategory: 'All',
+    menuSearchQuery: '',
     appliedCoupon: null,
     checkoutIntent: null,
     productDetailQty: 1,
@@ -203,7 +205,13 @@ function updateNavigation() {
     if (state.user) {
         guestBar.style.display = 'none';
         profile.style.display = 'flex';
-        document.getElementById('user-display-name').textContent = state.user.name;
+        
+        let displayName = state.user.name;
+        if (displayName === "Customer 9025879479") {
+            displayName = "Prem";
+        }
+        
+        document.getElementById('user-display-name').textContent = displayName;
         document.getElementById('user-display-role').textContent = state.user.role;
         loginBtn.style.display = 'none';
         logoutBtn.style.display = 'inline-flex';
@@ -214,7 +222,9 @@ function updateNavigation() {
                 <a href="#" class="nav-link" onclick="navigateTo('customer')"><i class="fa-solid fa-utensils"></i> Browse</a>
                 <a href="#" class="nav-link" onclick="navigateTo('customer');switchCustomerTab('orders');loadCustomerOrders()"><i class="fa-solid fa-receipt"></i> Orders</a>
             `;
-            document.querySelector('.customer-name') && (document.querySelector('.customer-name').textContent = state.user.name);
+            document.querySelectorAll('.customer-name').forEach(el => {
+                el.textContent = displayName;
+            });
         } else if (state.user.role === 'OWNER') {
             wishBtn.style.display = 'none'; cartBtn.style.display = 'none';
             nav.innerHTML = `<span class="nav-link active"><i class="fa-solid fa-store"></i> Management Hub</span>`;
@@ -323,26 +333,283 @@ function showAuthForm() {
 // =====================================================
 // DATA LOADING
 // =====================================================
+// =====================================================
+// MOCK FALLBACK DATA
+// =====================================================
+const MOCK_RESTAURANTS = [
+    { id:1, name:"Domino's Pizza", cuisine:"Pizza & Pasta", address:"Gandhipuram, Coimbatore", rating:4.3, reviewsCount:5200, deliveryTime:25, deliveryFee:29, offers:"50% OFF up to ₹100", isOpen:true, imageUrl:"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400" },
+    { id:2, name:"McDonald's", cuisine:"Burgers & Fast Food", address:"RS Puram, Coimbatore", rating:4.2, reviewsCount:6100, deliveryTime:20, deliveryFee:29, offers:"McSaver Meal at ₹169", isOpen:true, imageUrl:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400" },
+    { id:3, name:"KFC", cuisine:"Fried Chicken & Burgers", address:"Avinashi Road, Coimbatore", rating:4.1, reviewsCount:4800, deliveryTime:22, deliveryFee:29, offers:"Bucket Feast ₹799", isOpen:true, imageUrl:"https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=400" },
+    { id:4, name:"Annapoorna", cuisine:"South Indian Meals", address:"Sathyamangalam Road, Coimbatore", rating:4.5, reviewsCount:3200, deliveryTime:30, deliveryFee:19, offers:"Unlimited Meals ₹149", isOpen:true, imageUrl:"https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400" },
+    { id:5, name:"Behrouz Biryani", cuisine:"Biryani & Kebabs", address:"Town Hall, Coimbatore", rating:4.6, reviewsCount:4100, deliveryTime:40, deliveryFee:39, offers:"Royal Feast ₹699 for 2", isOpen:true, imageUrl:"https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400" },
+    { id:6, name:"Wok Express", cuisine:"Chinese & Asian", address:"Peelamedu, Coimbatore", rating:4.2, reviewsCount:2100, deliveryTime:25, deliveryFee:29, offers:"Free Wonton Soup above ₹399", isOpen:true, imageUrl:"https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400" },
+    { id:7, name:"Punjab Grill", cuisine:"North Indian & Mughlai", address:"RS Puram, Coimbatore", rating:4.5, reviewsCount:3500, deliveryTime:35, deliveryFee:39, offers:"Butter Naan + Dal Makhani ₹249", isOpen:true, imageUrl:"https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400" },
+    { id:8, name:"Subway", cuisine:"Sandwiches & Wraps", address:"Avinashi Road, Coimbatore", rating:4.2, reviewsCount:3200, deliveryTime:20, deliveryFee:29, offers:"Buy 2 Footlongs at ₹499", isOpen:true, imageUrl:"https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400" },
+    { id:9, name:"Shawarma Palace", cuisine:"Shawarma & Kebabs", address:"Gandhipuram, Coimbatore", rating:4.4, reviewsCount:2800, deliveryTime:25, deliveryFee:25, offers:"Combo Meal at ₹199", isOpen:true, imageUrl:"https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400" },
+    { id:10, name:"Kaati Zone", cuisine:"Rolls & Wraps", address:"Tidel Park, Coimbatore", rating:4.3, reviewsCount:1700, deliveryTime:20, deliveryFee:25, offers:"Buy 2 Rolls at ₹299", isOpen:true, imageUrl:"https://images.unsplash.com/photo-1604909052743-94e838986d24?w=400" },
+    { id:11, name:"Baskin Robbins", cuisine:"Ice Cream & Desserts", address:"Race Course Road, Coimbatore", rating:4.3, reviewsCount:1900, deliveryTime:20, deliveryFee:29, offers:"2 Scoop at ₹149", isOpen:true, imageUrl:"https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400" },
+    { id:12, name:"Corner House", cuisine:"Desserts & Cafe", address:"Saibaba Colony, Coimbatore", rating:4.4, reviewsCount:2200, deliveryTime:20, deliveryFee:19, offers:"Free Cold Coffee above ₹299", isOpen:true, imageUrl:"https://images.unsplash.com/photo-1564355808539-22fda35bed7e?w=400" }
+];
+
+const MOCK_MENU_ITEMS = [
+    // Pizza
+    { id:101, restaurant:{id:1,name:"Domino's Pizza"}, name:"Margherita Pizza", category:"Pizza", price:199, rating:4.3, prepTime:20, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400", description:"Classic tomato sauce, mozzarella and basil on hand-tossed crust." },
+    { id:102, restaurant:{id:1,name:"Domino's Pizza"}, name:"Pepperoni Pizza", category:"Pizza", price:349, rating:4.5, prepTime:22, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400", description:"Loaded with spicy pepperoni slices and extra mozzarella." },
+    { id:103, restaurant:{id:1,name:"Domino's Pizza"}, name:"BBQ Chicken Pizza", category:"Pizza", price:329, rating:4.4, prepTime:25, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400", description:"Smoky BBQ sauce with grilled chicken and red onions." },
+    { id:104, restaurant:{id:1,name:"Domino's Pizza"}, name:"Veggie Paradise Pizza", category:"Pizza", price:279, rating:4.2, prepTime:20, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400", description:"Loaded with fresh bell peppers, mushrooms, olives and onions." },
+    // Burgers
+    { id:201, restaurant:{id:2,name:"McDonald's"}, name:"McAloo Tikki", category:"Burgers", price:59, rating:4.2, prepTime:8, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400", description:"Spiced potato tikki patty with lettuce and tangy sauce." },
+    { id:202, restaurant:{id:2,name:"McDonald's"}, name:"McChicken Burger", category:"Burgers", price:149, rating:4.3, prepTime:8, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400", description:"Crispy breaded chicken fillet with lettuce and mayo." },
+    { id:203, restaurant:{id:2,name:"McDonald's"}, name:"Big Mac", category:"Burgers", price:239, rating:4.5, prepTime:10, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400", description:"Two beef patties, special sauce, lettuce, cheese, pickles and onions." },
+    { id:204, restaurant:{id:2,name:"McDonald's"}, name:"Cheese Burst Burger", category:"Burgers", price:189, rating:4.4, prepTime:10, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400", description:"Juicy beef patty with triple cheese melted on a sesame bun." },
+    // Fried Chicken
+    { id:301, restaurant:{id:3,name:"KFC"}, name:"Original Recipe Chicken (2pc)", category:"Fried Chicken", price:219, rating:4.4, prepTime:12, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=400", description:"Crispy fried chicken in KFC's legendary secret recipe of 11 herbs and spices." },
+    { id:302, restaurant:{id:3,name:"KFC"}, name:"Hot & Crispy Strips (3pc)", category:"Fried Chicken", price:179, rating:4.3, prepTime:10, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=400", description:"Tender chicken strips in a spicy crispy coating." },
+    { id:303, restaurant:{id:3,name:"KFC"}, name:"Popcorn Chicken", category:"Fried Chicken", price:149, rating:4.4, prepTime:8, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=400", description:"Bite-sized crispy chicken bites seasoned with signature spices." },
+    // Biryani
+    { id:401, restaurant:{id:5,name:"Behrouz Biryani"}, name:"Nawabi Chicken Biryani", category:"Biryani", price:399, rating:4.8, prepTime:40, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400", description:"Royal Nawabi-style dum biryani with saffron, rose water and tender chicken." },
+    { id:402, restaurant:{id:5,name:"Behrouz Biryani"}, name:"Persian Mutton Biryani", category:"Biryani", price:499, rating:4.9, prepTime:45, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400", description:"Slow-dum cooked with barberry, almonds and aromatic Persian spices." },
+    { id:403, restaurant:{id:5,name:"Behrouz Biryani"}, name:"Prawn Biryani", category:"Biryani", price:449, rating:4.7, prepTime:40, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400", description:"Juicy prawns cooked in a coconut-based biryani masala." },
+    { id:404, restaurant:{id:5,name:"Behrouz Biryani"}, name:"Veg Dum Biryani", category:"Biryani", price:299, rating:4.4, prepTime:35, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400", description:"Fragrant basmati rice with seasonal vegetables, saffron and whole spices." },
+    // South Indian
+    { id:501, restaurant:{id:4,name:"Annapoorna"}, name:"Ghee Roast Dosa", category:"South Indian", price:89, rating:4.5, prepTime:10, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400", description:"Extra crispy dosa roasted in pure ghee, served with chutney and sambar." },
+    { id:502, restaurant:{id:4,name:"Annapoorna"}, name:"Idly Sambar (3 pcs)", category:"South Indian", price:59, rating:4.4, prepTime:5, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400", description:"Soft steamed rice cakes served with aromatic sambar and chutneys." },
+    { id:503, restaurant:{id:4,name:"Annapoorna"}, name:"Masala Dosa", category:"South Indian", price:79, rating:4.5, prepTime:10, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400", description:"Golden crispy dosa filled with spiced potato masala." },
+    { id:504, restaurant:{id:4,name:"Annapoorna"}, name:"Vada Sambar (2 pcs)", category:"South Indian", price:69, rating:4.3, prepTime:7, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400", description:"Crispy medu vada dunked in steaming sambar." },
+    // Chinese
+    { id:601, restaurant:{id:6,name:"Wok Express"}, name:"Kung Pao Chicken", category:"Chinese", price:259, rating:4.5, prepTime:15, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400", description:"Tender chicken with peanuts and dried chillies in bold Kung Pao sauce." },
+    { id:602, restaurant:{id:6,name:"Wok Express"}, name:"Hakka Noodles", category:"Chinese", price:199, rating:4.4, prepTime:12, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400", description:"Classic stir-fried egg noodles with vegetables and soy sauce." },
+    { id:603, restaurant:{id:6,name:"Wok Express"}, name:"Veg Manchurian", category:"Chinese", price:199, rating:4.4, prepTime:15, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400", description:"Crispy vegetable balls in spicy tangy Manchurian sauce." },
+    { id:604, restaurant:{id:6,name:"Wok Express"}, name:"Dim Sum Basket", category:"Chinese", price:249, rating:4.6, prepTime:15, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400", description:"Steamed crystal dumplings filled with prawns, pork and vegetables." },
+    // North Indian
+    { id:701, restaurant:{id:7,name:"Punjab Grill"}, name:"Butter Chicken", category:"North Indian", price:329, rating:4.7, prepTime:30, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400", description:"Tender chicken in rich creamy tomato-butter gravy." },
+    { id:702, restaurant:{id:7,name:"Punjab Grill"}, name:"Dal Makhani", category:"North Indian", price:249, rating:4.6, prepTime:25, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400", description:"Black lentils slow-cooked overnight with butter and cream." },
+    { id:703, restaurant:{id:7,name:"Punjab Grill"}, name:"Chicken Tikka", category:"North Indian", price:349, rating:4.8, prepTime:25, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400", description:"Succulent chicken chunks marinated in spiced yogurt and grilled in tandoor." },
+    { id:704, restaurant:{id:7,name:"Punjab Grill"}, name:"Palak Paneer", category:"North Indian", price:279, rating:4.5, prepTime:20, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400", description:"Fresh cottage cheese cubes in vibrant spinach gravy." },
+    // Sandwiches
+    { id:801, restaurant:{id:8,name:"Subway"}, name:"Veggie Delight Sub", category:"Sandwiches", price:199, rating:4.0, prepTime:5, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400", description:"Fresh vegetables in a honey-oat bread with sauce." },
+    { id:802, restaurant:{id:8,name:"Subway"}, name:"Chicken Teriyaki Sub", category:"Sandwiches", price:299, rating:4.3, prepTime:7, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400", description:"Tender teriyaki chicken strips with fresh vegetables." },
+    { id:803, restaurant:{id:8,name:"Subway"}, name:"Paneer Tikka Sub", category:"Sandwiches", price:259, rating:4.2, prepTime:7, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400", description:"Spiced paneer tikka with mint mayo and fresh veggies." },
+    { id:804, restaurant:{id:8,name:"Subway"}, name:"Tuna Sub", category:"Sandwiches", price:319, rating:4.4, prepTime:5, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400", description:"Classic tuna salad with chipotle sauce in white bread." },
+    // Shawarma
+    { id:901, restaurant:{id:9,name:"Shawarma Palace"}, name:"Chicken Shawarma", category:"Shawarma", price:149, rating:4.5, prepTime:10, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400", description:"Classic chicken shawarma with garlic sauce and pickles in pita." },
+    { id:902, restaurant:{id:9,name:"Shawarma Palace"}, name:"Mutton Shawarma", category:"Shawarma", price:199, rating:4.6, prepTime:12, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400", description:"Succulent mutton strips in Lebanese spices with tzatziki." },
+    { id:903, restaurant:{id:9,name:"Shawarma Palace"}, name:"Veg Shawarma", category:"Shawarma", price:129, rating:4.2, prepTime:10, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400", description:"Falafel and roasted vegetables with hummus in warm pita." },
+    { id:904, restaurant:{id:9,name:"Shawarma Palace"}, name:"Shawarma Plate", category:"Shawarma", price:299, rating:4.7, prepTime:15, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400", description:"Mixed shawarma with rice, garlic sauce and salad." },
+    // Rolls
+    { id:1001, restaurant:{id:10,name:"Kaati Zone"}, name:"Chicken Egg Roll", category:"Rolls", price:149, rating:4.4, prepTime:8, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1604909052743-94e838986d24?w=400", description:"Spiced chicken with beaten egg and green chutney in a paratha roll." },
+    { id:1002, restaurant:{id:10,name:"Kaati Zone"}, name:"Paneer Tikka Roll", category:"Rolls", price:139, rating:4.3, prepTime:8, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1604909052743-94e838986d24?w=400", description:"Marinated paneer tikka with mint chutney in grilled paratha." },
+    { id:1003, restaurant:{id:10,name:"Kaati Zone"}, name:"Mutton Seekh Roll", category:"Rolls", price:179, rating:4.6, prepTime:10, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1604909052743-94e838986d24?w=400", description:"Juicy mutton seekh kebab with onions and green chutney." },
+    { id:1004, restaurant:{id:10,name:"Kaati Zone"}, name:"Veg Kathi Roll", category:"Rolls", price:119, rating:4.1, prepTime:7, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1604909052743-94e838986d24?w=400", description:"Crispy vegetables in mint chutney in a whole-wheat paratha." },
+    // Ice Cream
+    { id:1101, restaurant:{id:11,name:"Baskin Robbins"}, name:"Chocolate Fudge Sundae", category:"Ice Cream", price:199, rating:4.5, prepTime:3, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400", description:"Rich chocolate ice cream with hot fudge, whipped cream and cherry." },
+    { id:1102, restaurant:{id:11,name:"Baskin Robbins"}, name:"Mango Tango Sundae", category:"Ice Cream", price:179, rating:4.6, prepTime:3, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400", description:"Mango ice cream with mango coulis and fresh mango pieces." },
+    { id:1103, restaurant:{id:11,name:"Baskin Robbins"}, name:"Strawberry Bliss Scoop", category:"Ice Cream", price:149, rating:4.4, prepTime:2, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400", description:"Fresh strawberry ice cream with real fruit pieces in waffle cone." },
+    { id:1104, restaurant:{id:11,name:"Baskin Robbins"}, name:"Classic Vanilla Scoop", category:"Ice Cream", price:99, rating:4.3, prepTime:2, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400", description:"Premium Madagascar vanilla bean ice cream in a crispy waffle cone." },
+    // Desserts
+    { id:1201, restaurant:{id:12,name:"Corner House"}, name:"Death by Chocolate", category:"Desserts", price:299, rating:4.9, prepTime:5, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1564355808539-22fda35bed7e?w=400", description:"Multiple layers of chocolate cake, mousse, fudge and ice cream." },
+    { id:1202, restaurant:{id:12,name:"Corner House"}, name:"Tiramisu", category:"Desserts", price:279, rating:4.7, prepTime:5, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1567327613485-fbc7bf196197?w=400", description:"Classic Italian espresso-soaked ladyfingers with mascarpone." },
+    { id:1203, restaurant:{id:12,name:"Corner House"}, name:"Waffles with Ice Cream", category:"Desserts", price:249, rating:4.6, prepTime:8, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=400", description:"Crispy Belgian waffles with vanilla ice cream and maple syrup." },
+    // Drinks
+    { id:1301, restaurant:{id:12,name:"Corner House"}, name:"Cold Coffee", category:"Drinks", price:149, rating:4.6, prepTime:5, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1559496417-e7f25cb247f3?w=400", description:"Creamy blended cold coffee with ice cream and chocolate syrup." },
+    { id:1302, restaurant:{id:12,name:"Corner House"}, name:"Oreo Milkshake", category:"Drinks", price:179, rating:4.7, prepTime:5, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=400", description:"Thick blended Oreo milkshake with vanilla ice cream and whipped cream." },
+    { id:1303, restaurant:{id:5,name:"Behrouz Biryani"}, name:"Mango Lassi", category:"Drinks", price:99, rating:4.7, prepTime:5, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400", description:"Refreshing Alphonso mango and creamy yogurt with cardamom." },
+    // Tamil Nadu Foods
+    { id:1401, restaurant:{id:4,name:"Annapoorna"}, name:"Chettinad Chicken Curry", category:"Tamil Nadu Foods", price:299, rating:4.7, prepTime:30, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=400", description:"Fiery Chettinad curry with aromatic whole spices and coconut." },
+    { id:1402, restaurant:{id:4,name:"Annapoorna"}, name:"Kothu Parotta", category:"Tamil Nadu Foods", price:249, rating:4.7, prepTime:20, isVeg:false, imageUrl:"https://images.unsplash.com/photo-1567337710282-00832b415979?w=400", description:"Minced parotta mixed with egg, chicken and aromatic spices." },
+    { id:1403, restaurant:{id:4,name:"Annapoorna"}, name:"Filter Coffee", category:"Tamil Nadu Foods", price:40, rating:4.8, prepTime:3, isVeg:true, imageUrl:"https://images.unsplash.com/photo-1559496417-e7f25cb247f3?w=400", description:"Authentic South Indian decoction filter coffee with frothy milk." }
+];
+
 async function loadAllRestaurantsData() {
     try {
         const res = await fetch(`${API_BASE}/restaurants`);
         if (res.ok) {
-            state.restaurants = await res.json();
-            renderLandingRestaurants();
-            renderFeaturedItems();
+            const data = await res.json();
+            // Use DB data if available, otherwise fall back to mock
+            state.restaurants = (data && data.length > 0) ? data : MOCK_RESTAURANTS;
+            
+            // Fetch all menu items globally for filtering
+            try {
+                const itemsRes = await fetch(`${API_BASE}/restaurants/menu-items`);
+                if (itemsRes.ok) {
+                    const items = await itemsRes.json();
+                    state.allMenuItems = (items && items.length > 0) ? items : MOCK_MENU_ITEMS;
+                } else {
+                    state.allMenuItems = MOCK_MENU_ITEMS;
+                }
+            } catch (err) {
+                console.error('Failed to load global menu items, using mock data', err);
+                state.allMenuItems = MOCK_MENU_ITEMS;
+            }
+        } else {
+            // Backend down - use mock data
+            state.restaurants = MOCK_RESTAURANTS;
+            state.allMenuItems = MOCK_MENU_ITEMS;
         }
-    } catch { console.error('Failed to load restaurants'); }
+    } catch {
+        console.warn('Backend unavailable, loading mock data for demo.');
+        state.restaurants = MOCK_RESTAURANTS;
+        state.allMenuItems = MOCK_MENU_ITEMS;
+    }
+    renderLandingRestaurants();
+    renderFeaturedItems();
 }
 
 async function loadMenuItems(restaurantId) {
+    let items = [];
     try {
         const res = await fetch(`${API_BASE}/restaurants/${restaurantId}/menu`);
         if (res.ok) {
-            state.menuItems = await res.json();
-            return state.menuItems;
+            items = await res.json();
         }
-    } catch {}
-    return [];
+    } catch (err) {
+        console.warn('Failed to load menu items from backend API', err);
+    }
+    
+    if (!items || items.length === 0) {
+        const rest = state.restaurants.find(r => r.id === restaurantId);
+        items = generateMockMenuForRestaurant(restaurantId, rest);
+    }
+    state.menuItems = items;
+    return items;
+}
+
+function generateMockMenuForRestaurant(restaurantId, restaurant) {
+    const name = (restaurant?.name || "").toLowerCase();
+    const cuisine = (restaurant?.cuisine || "").toLowerCase();
+    const id = restaurantId;
+    
+    let items = [];
+    
+    if (name.includes("domino") || cuisine.includes("pizza") || id === 1) {
+        // Pizza, Garlic Bread, Pasta, Desserts, Beverages, Combo Meals
+        items = [
+            // Pizza
+            { id: 10001, restaurant: { id: id, name: "Domino's Pizza" }, name: "Margherita Pizza", category: "Pizza", price: 199, rating: 4.3, prepTime: 15, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400", description: "Classic tomato sauce, fresh mozzarella, and basil leaves on hand-tossed crust." },
+            { id: 10002, restaurant: { id: id, name: "Domino's Pizza" }, name: "Farmhouse Pizza", category: "Pizza", price: 349, rating: 4.4, prepTime: 18, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=400", description: "Loaded with black olives, green capsicum, fresh mushrooms, and onions." },
+            { id: 10003, restaurant: { id: id, name: "Domino's Pizza" }, name: "Chicken Dominator Pizza", category: "Pizza", price: 499, rating: 4.6, prepTime: 20, isVeg: false, imageUrl: "https://images.unsplash.com/photo-1588315029754-2dd089d39a1a?w=400", description: "Loaded with double chicken tikka, spicy chicken sausage, and grilled chicken." },
+            { id: 10004, restaurant: { id: id, name: "Domino's Pizza" }, name: "Peppy Paneer Pizza", category: "Pizza", price: 379, rating: 4.3, prepTime: 17, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1520201163981-8cc95007dd2a?w=400", description: "Spiced paneer cubes, crisp capsicum, and red paprika." },
+            { id: 10005, restaurant: { id: id, name: "Domino's Pizza" }, name: "Veggie Paradise Pizza", category: "Pizza", price: 399, rating: 4.4, prepTime: 18, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400", description: "Baby corn, black olives, capsicum, and red paprika on cheese burst crust." },
+            
+            // Garlic Bread
+            { id: 10007, restaurant: { id: id, name: "Domino's Pizza" }, name: "Garlic Breadsticks", category: "Garlic Bread", price: 99, rating: 4.2, prepTime: 10, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1544982503-9f984c14501a?w=400", description: "Baked garlic breadsticks seasoned with premium Italian herbs." },
+            { id: 10008, restaurant: { id: id, name: "Domino's Pizza" }, name: "Stuffed Garlic Bread", category: "Garlic Bread", price: 149, rating: 4.5, prepTime: 12, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1544982503-9f984c14501a?w=400", description: "Stuffed with sweet corn, jalapeños, and dynamic liquid cheese." },
+            
+            // Pasta
+            { id: 10009, restaurant: { id: id, name: "Domino's Pizza" }, name: "Creamy Tomato Veg Pasta", category: "Pasta", price: 129, rating: 4.1, prepTime: 12, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400", description: "Instant creamy tomato sauce pasta with mushrooms and olives." },
+            { id: 10010, restaurant: { id: id, name: "Domino's Pizza" }, name: "Cheesy Chicken Pasta", category: "Pasta", price: 159, rating: 4.3, prepTime: 12, isVeg: false, imageUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400", description: "Pasta loaded with grilled chicken chunks in a rich white cheese sauce." },
+            
+            // Desserts
+            { id: 10011, restaurant: { id: id, name: "Domino's Pizza" }, name: "Choco Lava Cake", category: "Desserts", price: 109, rating: 4.8, prepTime: 5, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400", description: "Decadent chocolate cake with a molten chocolate core." },
+            { id: 10012, restaurant: { id: id, name: "Domino's Pizza" }, name: "Butterscotch Mousse Cup", category: "Desserts", price: 89, rating: 4.2, prepTime: 5, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400", description: "Sweet whipped cream and rich butterscotch fudge layer." },
+            
+            // Beverages
+            { id: 10013, restaurant: { id: id, name: "Domino's Pizza" }, name: "Pepsi 500ml", category: "Beverages", price: 60, rating: 4.4, prepTime: 2, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1629732047847-50b7ecf0cbf1?w=400", description: "Refreshing carbonated cola drink." },
+            { id: 10014, restaurant: { id: id, name: "Domino's Pizza" }, name: "7Up 500ml", category: "Beverages", price: 60, rating: 4.3, prepTime: 2, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1629732047847-50b7ecf0cbf1?w=400", description: "Refreshing lemon-lime carbonated soda." },
+            
+            // Combo Meals
+            { id: 10015, restaurant: { id: id, name: "Domino's Pizza" }, name: "Classic Meal for 2", category: "Combo Meals", price: 329, rating: 4.5, prepTime: 18, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400", description: "1 Medium Margherita Pizza + 1 Garlic Breadsticks + 1 Pepsi." },
+            { id: 10016, restaurant: { id: id, name: "Domino's Pizza" }, name: "Pizza Party Combo", category: "Combo Meals", price: 999, rating: 4.7, prepTime: 20, isVeg: false, imageUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400", description: "1 Medium Veggie Paradise + 1 Medium Chicken Dominator + 2 Lava Cakes + 2 Pepsi." }
+        ];
+    } 
+    else if (name.includes("kfc") || cuisine.includes("fried chicken") || id === 3) {
+        // Chicken Buckets, Burgers, Wraps, Rice Bowls, Fries, Nuggets, Beverages, Combo Meals
+        items = [
+            // Chicken Buckets
+            { id: 20001, restaurant: { id: id, name: "KFC" }, name: "8 pc Hot & Crispy Chicken Bucket", category: "Chicken Buckets", price: 699, rating: 4.6, prepTime: 15, isVeg: false, imageUrl: "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=400", description: "KFC's legendary signature chicken fried to a perfect golden crisp." },
+            { id: 20002, restaurant: { id: id, name: "KFC" }, name: "12 pc Chicken Strips Bucket", category: "Chicken Buckets", price: 549, rating: 4.5, prepTime: 12, isVeg: false, imageUrl: "https://images.unsplash.com/photo-1562967914-608f82629710?w=400", description: "Boneless tender strips of chicken coated in crispy spices." },
+            { id: 20003, restaurant: { id: id, name: "KFC" }, name: "Ultimate Savings Bucket", category: "Chicken Buckets", price: 799, rating: 4.7, prepTime: 15, isVeg: false, imageUrl: "https://images.unsplash.com/photo-1609780447631-05b93e5a88ea?w=400", description: "4pc Hot & Crispy + 6pc Strips + 2 Dips + Large Fries." },
+            
+            // Burgers
+            { id: 20004, restaurant: { id: id, name: "KFC" }, name: "Classic Chicken Zinger Burger", category: "Burgers", price: 189, rating: 4.4, prepTime: 10, isVeg: false, imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400", description: "Extra crispy chicken patty with lettuce and Zesty sauce." },
+            { id: 20005, restaurant: { id: id, name: "KFC" }, name: "Double Down Burger", category: "Burgers", price: 249, rating: 4.6, prepTime: 12, isVeg: false, imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400", description: "No buns! Just 2 crispy chicken fillets sandwiching cheese and sauce." },
+            { id: 20006, restaurant: { id: id, name: "KFC" }, name: "Veg Zinger Burger", category: "Burgers", price: 149, rating: 4.2, prepTime: 8, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400", description: "Crispy vegetable patty with fresh lettuce and dynamic mayo." },
+            
+            // Wraps
+            { id: 20007, restaurant: { id: id, name: "KFC" }, name: "Chicken Twister Wrap", category: "Wraps", price: 169, rating: 4.3, prepTime: 10, isVeg: false, imageUrl: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400", description: "Crispy strips with tomatoes, lettuce, and pepper mayo in a warm wrap." },
+            { id: 20008, restaurant: { id: id, name: "KFC" }, name: "Veg Twister Wrap", category: "Wraps", price: 129, rating: 4.1, prepTime: 8, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400", description: "Crispy veg fingers with tomatoes, lettuce, and sweet chilli sauce." },
+            
+            // Rice Bowls
+            { id: 20009, restaurant: { id: id, name: "KFC" }, name: "Popcorn Chicken Rice Bowl", category: "Rice Bowls", price: 189, rating: 4.5, prepTime: 12, isVeg: false, imageUrl: "https://images.unsplash.com/photo-1626776876729-bab4369a5a5a?w=400", description: "Spiced gravy and aromatic rice topped with hot popcorn chicken." },
+            { id: 20010, restaurant: { id: id, name: "KFC" }, name: "Veg Rice Bowl", category: "Rice Bowls", price: 159, rating: 4.2, prepTime: 10, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400", description: "Steaming aromatic rice topped with vegetable balls and spicy curry." },
+            
+            // Fries
+            { id: 20011, restaurant: { id: id, name: "KFC" }, name: "French Fries (Medium)", category: "Fries", price: 99, rating: 4.3, prepTime: 5, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400", description: "Golden salted potato fries." },
+            { id: 20012, restaurant: { id: id, name: "KFC" }, name: "Peri Peri Fries", category: "Fries", price: 119, rating: 4.4, prepTime: 5, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400", description: "Crispy fries tossed in hot peri peri spices." },
+            
+            // Nuggets
+            { id: 20013, restaurant: { id: id, name: "KFC" }, name: "Chicken Nuggets (6 pc)", category: "Nuggets", price: 139, rating: 4.4, prepTime: 8, isVeg: false, imageUrl: "https://images.unsplash.com/photo-1562967914-608f82629710?w=400", description: "Crispy chicken nuggets served with a tangy mustard dip." },
+            { id: 20014, restaurant: { id: id, name: "KFC" }, name: "Veg Fingers (6 pc)", category: "Nuggets", price: 99, rating: 4.1, prepTime: 8, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1562967914-608f82629710?w=400", description: "Crispy mixed vegetable fingers served with sweet chilli dip." },
+            
+            // Beverages
+            { id: 20015, restaurant: { id: id, name: "KFC" }, name: "Pepsi Glass 300ml", category: "Beverages", price: 50, rating: 4.3, prepTime: 2, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1629732047847-50b7ecf0cbf1?w=400", description: "Cool Pepsi cola." },
+            
+            // Combo Meals
+            { id: 20016, restaurant: { id: id, name: "KFC" }, name: "Zinger Box Meal", category: "Combo Meals", price: 349, rating: 4.6, prepTime: 12, isVeg: false, imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400", description: "1 Chicken Zinger Burger + 1 pc Fried Chicken + Medium Fries + Pepsi." }
+        ];
+    }
+    else if (name.includes("biryani") || cuisine.includes("biryani") || id === 5 || id === 19 || id === 12) {
+        // Chicken Biryani, Mutton Biryani, Veg Biryani, Paneer Biryani, Egg Biryani, Fish Biryani, Prawn Biryani, Family Packs, Starters, Desserts, Drinks
+        items = [
+            // Chicken Biryani
+            { id: 30001, restaurant: { id: id, name: "Behrouz Biryani" }, name: "Hyderabadi Chicken Biryani", category: "Chicken Biryani", price: 299, rating: 4.7, prepTime: 30, isVeg: false, imageUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400", description: "Spiced basmati rice with marinated chicken pieces cooked on dum." },
+            { id: 30002, restaurant: { id: id, name: "Behrouz Biryani" }, name: "Nawabi Chicken Dum Biryani", category: "Chicken Biryani", price: 349, rating: 4.8, prepTime: 35, isVeg: false, imageUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400", description: "Rich saffron basmati rice with boneless chicken pieces and rose water." },
+            
+            // Mutton Biryani
+            { id: 30003, restaurant: { id: id, name: "Behrouz Biryani" }, name: "Special Mutton Dum Biryani", category: "Mutton Biryani", price: 399, rating: 4.9, prepTime: 40, isVeg: false, imageUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400", description: "Slow-dum cooked tender mutton in sealed clay pot with saffron." },
+            
+            // Veg Biryani
+            { id: 30004, restaurant: { id: id, name: "Behrouz Biryani" }, name: "Veg Dum Biryani", category: "Veg Biryani", price: 199, rating: 4.4, prepTime: 25, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400", description: "Fragrant basmati rice layered with fresh seasonal vegetables and herbs." },
+            
+            // Paneer Biryani
+            { id: 30005, restaurant: { id: id, name: "Behrouz Biryani" }, name: "Paneer Tikka Biryani", category: "Paneer Biryani", price: 249, rating: 4.5, prepTime: 25, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400", description: "Rich charcoal grilled paneer tikka chunks layered in basmati rice." },
+            
+            // Egg Biryani
+            { id: 30006, restaurant: { id: id, name: "Behrouz Biryani" }, name: "Spiced Egg Biryani", category: "Egg Biryani", price: 209, rating: 4.5, prepTime: 20, isVeg: false, imageUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400", description: "Boiled eggs marinated in ground spices and layered in basmati rice." },
+            
+            // Fish Biryani
+            { id: 30007, restaurant: { id: id, name: "Behrouz Biryani" }, name: "Fish Tikka Biryani", category: "Fish Biryani", price: 349, rating: 4.6, prepTime: 30, isVeg: false, imageUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400", description: "Marinated grilled fish tikka layered in aromatic dum rice." },
+            
+            // Prawn Biryani
+            { id: 30008, restaurant: { id: id, name: "Behrouz Biryani" }, name: "Coastal Prawns Samba Biryani", category: "Prawn Biryani", price: 379, rating: 4.7, prepTime: 30, isVeg: false, imageUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400", description: "Coastal-spiced prawns cooked with authentic seeraga samba rice." },
+            
+            // Family Packs
+            { id: 30009, restaurant: { id: id, name: "Behrouz Biryani" }, name: "Chicken Biryani Family Pack", category: "Family Packs", price: 699, rating: 4.8, prepTime: 40, isVeg: false, imageUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400", description: "Serves 3-4 people. Chicken Biryani + Eggs + Raita + Salna." },
+            { id: 30010, restaurant: { id: id, name: "Behrouz Biryani" }, name: "Mutton Biryani Party Pack", category: "Family Packs", price: 899, rating: 4.9, prepTime: 45, isVeg: false, imageUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400", description: "Serves 3-4 people. Royal mutton biryani with almonds and saffron." },
+            
+            // Starters
+            { id: 30011, restaurant: { id: id, name: "Behrouz Biryani" }, name: "Chicken Tikka Starter", category: "Starters", price: 249, rating: 4.6, prepTime: 20, isVeg: false, imageUrl: "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400", description: "Charcoal grilled chicken chunks marinated in yogurt and spices." },
+            
+            // Desserts
+            { id: 30012, restaurant: { id: id, name: "Behrouz Biryani" }, name: "Gulab Jamun (2 pc)", category: "Desserts", price: 79, rating: 4.5, prepTime: 5, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1633889037199-e1ece4007ffc?w=400", description: "Warm sweet milk dumplings in sugar syrup." },
+            
+            // Drinks
+            { id: 30013, restaurant: { id: id, name: "Behrouz Biryani" }, name: "Sweet Lassi", category: "Drinks", price: 89, rating: 4.6, prepTime: 5, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400", description: "Thick creamy yogurt drink sweetened with sugar." }
+        ];
+    }
+    else {
+        const isVegRest = cuisine.includes("veg") || cuisine.includes("south indian");
+        items = [
+            { id: id * 1000 + 1, restaurant: { id: id }, name: "Paneer Butter Masala", category: "Main Course", price: 229, rating: 4.4, prepTime: 20, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400", description: "Soft paneer chunks in rich creamy tomato and butter gravy." },
+            { id: id * 1000 + 2, restaurant: { id: id }, name: "Butter Naan", category: "Breads", price: 49, rating: 4.3, prepTime: 10, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400", description: "Fluffy leavened tandoor bread brushed with butter." },
+            { id: id * 1000 + 3, restaurant: { id: id }, name: "Dal Makhani", category: "Main Course", price: 199, rating: 4.5, prepTime: 25, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400", description: "Black lentils slow-cooked overnight with cream." },
+            { id: id * 1000 + 4, restaurant: { id: id }, name: "Veg Manchurian Dry", category: "Starters", price: 179, rating: 4.2, prepTime: 15, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400", description: "Deep fried vegetable balls tossed in spicy soy-garlic sauce." }
+        ];
+        
+        if (!isVegRest) {
+            items.push(
+                { id: id * 1000 + 5, restaurant: { id: id }, name: "Chicken Tikka Masala", category: "Main Course", price: 289, rating: 4.6, prepTime: 22, isVeg: false, imageUrl: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400", description: "Grilled chicken tikka in onion tomato masala gravy." },
+                { id: id * 1000 + 6, restaurant: { id: id }, name: "Crispy Chicken Wings", category: "Starters", price: 219, rating: 4.4, prepTime: 15, isVeg: false, imageUrl: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400", description: "Battered chicken wings fried crispy and tossed in hot pepper sauce." }
+            );
+        }
+        
+        items.push(
+            { id: id * 1000 + 7, restaurant: { id: id }, name: "Chocolate Ice Cream", category: "Desserts", price: 89, rating: 4.5, prepTime: 5, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400", description: "Rich creamy chocolate scoop." },
+            { id: id * 1000 + 8, restaurant: { id: id }, name: "Fresh Lime Soda", category: "Drinks", price: 59, rating: 4.1, prepTime: 5, isVeg: true, imageUrl: "https://images.unsplash.com/photo-1561077770-9f3b02a22b68?w=400", description: "Refreshing fizzy lime soda." }
+        );
+    }
+    
+    return items;
 }
 
 // =====================================================
@@ -352,6 +619,16 @@ function renderLandingRestaurants(query = '', category = 'All') {
     const grid = document.getElementById('landing-restaurant-grid');
     if (!grid) return;
     let restaurants = state.restaurants;
+
+    // Apply active category filter if set
+    const cat = state.activeCategory || 'All';
+    if (cat !== 'All') {
+        restaurants = restaurants.filter(r => {
+            if (r.cuisine.toLowerCase().includes(cat.toLowerCase()) || cat.toLowerCase().includes(r.cuisine.toLowerCase())) return true;
+            const hasItem = (state.allMenuItems || []).some(item => item.restaurant?.id === r.id && categoryMatches(item.category, cat));
+            return hasItem;
+        });
+    }
 
     // Apply filters
     if (state.activeFilters.veg) restaurants = restaurants.filter(r => r.cuisine.toLowerCase().includes('veg') || r.cuisine.toLowerCase().includes('south'));
@@ -415,17 +692,33 @@ async function renderFeaturedItems() {
     const grid = document.getElementById('featured-items-grid');
     if (!grid || state.restaurants.length === 0) return;
 
-    // Load items from a few restaurants
-    const featured = [];
-    for (const rest of state.restaurants.slice(0, 4)) {
-        const items = await loadMenuItems(rest.id);
-        items.slice(0, 3).forEach(item => { item._restaurantName = rest.name; featured.push(item); });
-        if (featured.length >= 12) break;
+    let items = state.allMenuItems || [];
+    if (items.length === 0) {
+        const featured = [];
+        for (const rest of state.restaurants.slice(0, 4)) {
+            const itemsList = await loadMenuItems(rest.id);
+            itemsList.slice(0, 3).forEach(item => { item._restaurantName = rest.name; featured.push(item); });
+            if (featured.length >= 12) break;
+        }
+        state.allMenuItems = featured;
+        items = featured;
     }
-    // Store all for later
-    state.allMenuItems = featured;
 
-    grid.innerHTML = featured.map(item => renderFoodCard(item)).join('');
+    const cat = state.activeCategory || 'All';
+    const filteredItems = cat === 'All' ? items.slice(0, 12) : items.filter(i => categoryMatches(i.category, cat));
+
+    // Update title dynamically
+    const titleEl = document.getElementById('featured-items-title');
+    if (titleEl) {
+        titleEl.textContent = cat === 'All' ? 'Popular Dishes Today' : `${cat} Dishes`;
+    }
+
+    if (filteredItems.length === 0) {
+        grid.innerHTML = `<div class="empty-state">No dishes found in this category.</div>`;
+        return;
+    }
+
+    grid.innerHTML = filteredItems.map(item => renderFoodCard(item)).join('');
     attachFoodCardListeners(grid);
 }
 
@@ -477,10 +770,26 @@ function findMenuItemById(id) {
 // =====================================================
 // FILTERS & CATEGORIES
 // =====================================================
+function categoryMatches(itemCategory, selectedCategory) {
+    if (!itemCategory || !selectedCategory || selectedCategory === 'All') return true;
+    const itemCat = itemCategory.toLowerCase().trim();
+    const selCat = selectedCategory.toLowerCase().trim();
+    if (itemCat === selCat) return true;
+    // Plural/singular match
+    if (itemCat + 's' === selCat || selCat + 's' === itemCat) return true;
+    // Tamil Nadu Foods variants
+    if ((selCat.includes('tamil') || selCat.includes('south indian')) && (itemCat.includes('tamil') || itemCat.includes('south indian') || itemCat === 'south indian')) return true;
+    if (selCat === 'fried chicken' && (itemCat.includes('fried chicken') || itemCat.includes('chicken'))) return true;
+    // Substring match fallback
+    if (itemCat.includes(selCat) || selCat.includes(itemCat)) return true;
+    return false;
+}
+
 function filterByCategory(cat) {
     state.activeCategory = cat;
     document.querySelectorAll('#category-strip .cat-pill').forEach(p => p.classList.toggle('active', p.dataset.cat === cat));
     renderLandingRestaurants(document.getElementById('hero-search-input')?.value || '');
+    renderFeaturedItems();
 }
 
 function customerFilterByCategory(cat) {
@@ -513,15 +822,44 @@ function sortRestaurants(type) {
 function renderFilteredRestaurants(query = '') {
     const grid = document.getElementById('restaurant-list');
     if (!grid) return;
-    let restaurants = [...state.restaurants];
-    const f = state.customerFilters;
-    if (f.rating) restaurants = restaurants.filter(r => r.rating >= 4.0);
-    if (f.fast) restaurants = restaurants.filter(r => r.deliveryTime <= 30);
-    if (f.offers) restaurants = restaurants.filter(r => r.offers && r.offers.trim());
-    if (query) { const q = query.toLowerCase(); restaurants = restaurants.filter(r => r.name.toLowerCase().includes(q) || r.cuisine.toLowerCase().includes(q)); }
-    if (restaurants.length === 0) { grid.innerHTML = `<div class="empty-state">No restaurants match your filters.</div>`; return; }
-    grid.innerHTML = restaurants.map(r => renderRestaurantCard(r)).join('');
-    attachRestaurantCardListeners(grid);
+    
+    const cat = state.customerCategory || 'All';
+    
+    if (cat === 'All') {
+        let restaurants = [...state.restaurants];
+        const f = state.customerFilters;
+        if (f.rating) restaurants = restaurants.filter(r => r.rating >= 4.0);
+        if (f.fast) restaurants = restaurants.filter(r => r.deliveryTime <= 30);
+        if (f.offers) restaurants = restaurants.filter(r => r.offers && r.offers.trim());
+        if (query) { const q = query.toLowerCase(); restaurants = restaurants.filter(r => r.name.toLowerCase().includes(q) || r.cuisine.toLowerCase().includes(q)); }
+        if (restaurants.length === 0) { grid.innerHTML = `<div class="empty-state">No restaurants match your filters.</div>`; return; }
+        grid.innerHTML = restaurants.map(r => renderRestaurantCard(r)).join('');
+        attachRestaurantCardListeners(grid);
+    } else {
+        let items = [...(state.allMenuItems || [])];
+        
+        // Filter by category
+        items = items.filter(i => categoryMatches(i.category, cat));
+        
+        // Filter by veg/nonveg/rating
+        const f = state.customerFilters;
+        if (f.veg) items = items.filter(i => i.isVeg);
+        if (f.nonveg) items = items.filter(i => !i.isVeg);
+        if (f.rating) items = items.filter(i => i.rating >= 4.0);
+        
+        if (query) {
+            const q = query.toLowerCase();
+            items = items.filter(i => i.name.toLowerCase().includes(q) || i.description?.toLowerCase().includes(q));
+        }
+        
+        if (items.length === 0) {
+            grid.innerHTML = `<div class="empty-state">No items found in this category.</div>`;
+            return;
+        }
+        
+        grid.innerHTML = `<div class="featured-items-grid" style="grid-column: 1 / -1; width: 100%;">${items.map(item => renderFoodCard(item)).join('')}</div>`;
+        attachFoodCardListeners(grid);
+    }
 }
 
 function switchCustomerTab(tab) {
@@ -536,9 +874,14 @@ function switchCustomerTab(tab) {
 // =====================================================
 async function openRestaurantMenu(restaurant) {
     state.selectedRestaurant = restaurant;
+    state.selectedMenuCategory = 'All';
+    state.menuSearchQuery = '';
+    const searchInput = document.getElementById('menu-item-search');
+    if (searchInput) searchInput.value = '';
+
     navigateToMenuView(restaurant);
     const items = await loadMenuItems(restaurant.id);
-    renderMenuItems(items);
+    renderMenuGrid();
     buildMenuCategoryNav(items);
     updateSidebarCart();
 }
@@ -571,14 +914,42 @@ function buildMenuCategoryNav(items) {
 }
 
 function filterMenuItems(cat) {
+    state.selectedMenuCategory = cat;
     document.querySelectorAll('#menu-category-nav .cat-pill').forEach(p => p.classList.toggle('active', p.dataset.cat === cat));
-    const filtered = cat === 'All' ? state.menuItems : state.menuItems.filter(i => i.category === cat);
+    renderMenuGrid();
+}
+
+function handleMenuItemSearch() {
+    const query = document.getElementById('menu-item-search')?.value || '';
+    state.menuSearchQuery = query;
+    renderMenuGrid();
+}
+
+function renderMenuGrid() {
+    const cat = state.selectedMenuCategory || 'All';
+    const query = (state.menuSearchQuery || '').toLowerCase().trim();
+    
+    let filtered = state.menuItems || [];
+    
+    // Filter by Category
+    if (cat !== 'All') {
+        filtered = filtered.filter(i => i.category === cat);
+    }
+    
+    // Filter by Search Query
+    if (query) {
+        filtered = filtered.filter(i => 
+            i.name.toLowerCase().includes(query) || 
+            (i.description || '').toLowerCase().includes(query)
+        );
+    }
+    
     renderMenuItems(filtered);
 }
 
 function renderMenuItems(items) {
     const grid = document.getElementById('menu-items-grid');
-    if (items.length === 0) { grid.innerHTML = `<div class="empty-state">No items in this category.</div>`; return; }
+    if (items.length === 0) { grid.innerHTML = `<div class="empty-state">No items found in this category.</div>`; return; }
     grid.innerHTML = items.map(item => renderMenuItemCard(item)).join('');
     grid.querySelectorAll('.menu-item-card').forEach(card => {
         card.addEventListener('click', () => {
@@ -593,6 +964,7 @@ function renderMenuItemCard(item) {
     const cartItem = state.cart.find(c => c.menuItemId === item.id);
     const qty = cartItem ? cartItem.quantity : 0;
     const inWishlist = state.wishlist.includes(item.id);
+    const stars = renderStarRating(item.rating || 4.2);
     return `
         <div class="menu-item-card" data-id="${item.id}">
             <div class="food-card-img-wrap">
@@ -604,6 +976,10 @@ function renderMenuItemCard(item) {
             </div>
             <div class="menu-item-body">
                 <div class="menu-item-name">${item.name}</div>
+                <div class="menu-item-rating">
+                    <span class="rating-stars">${stars}</span>
+                    <span class="rating-val">${(item.rating || 4.2).toFixed(1)}</span>
+                </div>
                 <div class="menu-item-desc">${item.description || ''}</div>
                 <div class="menu-item-footer">
                     <span class="menu-item-price">₹${item.price?.toFixed(0)}</span>
@@ -616,7 +992,6 @@ function renderMenuItemCard(item) {
                         </div>`
                     }
                 </div>
-                <div class="food-card-rating"><i class="fa-solid fa-star"></i> ${item.rating?.toFixed(1) || '4.2'} · ${item.prepTime || 20} min</div>
             </div>
         </div>
     `;
@@ -775,7 +1150,9 @@ function addToCart(menuItemId) {
         state.cart.push({
             menuItemId, name: item.name, price: item.price, quantity: 1,
             imageUrl: item.imageUrl, isVeg: item.isVeg,
-            restaurantId: item.restaurant?.id || state.selectedRestaurant?.id
+            category: item.category, rating: item.rating, prepTime: item.prepTime,
+            restaurantId: item.restaurant?.id || state.selectedRestaurant?.id,
+            restaurantName: item.restaurant?.name || state.selectedRestaurant?.name || 'Restaurant'
         });
     }
     updateCartBadge();
@@ -823,12 +1200,14 @@ function updateSidebarCart() {
 function openCartDrawer() {
     document.getElementById('cart-drawer').classList.add('active');
     document.getElementById('cart-drawer-overlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
     renderCartDrawer();
 }
 
 function closeCartDrawer() {
     document.getElementById('cart-drawer').classList.remove('active');
     document.getElementById('cart-drawer-overlay').classList.remove('active');
+    document.body.style.overflow = '';
 }
 
 function renderCartDrawer() {
@@ -849,27 +1228,67 @@ function renderCartDrawer() {
     if (footer) footer.style.display = 'block';
     if (guestNote) guestNote.style.display = !state.user ? 'flex' : 'none';
 
-    container.innerHTML = state.cart.map(item => `
-        <div class="cart-item-row">
-            <img src="${item.imageUrl || 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=100'}" alt="${item.name}" class="cart-item-img">
-            <div class="cart-item-info">
-                <div class="cart-item-name">${item.name}</div>
-                <div class="cart-item-price">₹${item.price.toFixed(0)} each</div>
+    container.innerHTML = state.cart.map(item => {
+        const fullItem = findMenuItemById(item.menuItemId);
+        const imgUrl = item.imageUrl || fullItem?.imageUrl || 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=100';
+        const isVeg = item.isVeg !== undefined ? item.isVeg : (fullItem?.isVeg ?? true);
+        const category = item.category || fullItem?.category || '';
+        const rating = item.rating || fullItem?.rating || 4.2;
+        const prepTime = item.prepTime || fullItem?.prepTime || 25;
+        const restaurantName = item.restaurantName || fullItem?.restaurant?.name || state.selectedRestaurant?.name || 'Restaurant';
+        
+        return `
+        <div class="cart-item-card-redesigned">
+            <div class="cart-item-main">
+                <div class="cart-item-img-wrap-redesigned">
+                    <img src="${imgUrl}" alt="${item.name}" class="cart-item-img-redesigned">
+                    <span class="veg-indicator-small ${isVeg ? 'veg' : 'nonveg'}">
+                        <i class="fa-solid fa-circle"></i>
+                    </span>
+                </div>
+                <div class="cart-item-details-redesigned">
+                    <div class="cart-item-rest-redesigned">${restaurantName}</div>
+                    <div class="cart-item-name-redesigned">${item.name}</div>
+                    <div class="cart-item-category-redesigned">${category}</div>
+                    <div class="cart-item-meta-redesigned">
+                        <span class="rating"><i class="fa-solid fa-star"></i> ${rating.toFixed(1)}</span>
+                        <span class="dot">·</span>
+                        <span><i class="fa-solid fa-clock"></i> ${prepTime} min</span>
+                    </div>
+                    <div class="cart-item-price-redesigned">₹${item.price.toFixed(0)}</div>
+                </div>
             </div>
-            <div class="cart-item-controls">
-                <button class="cart-qty-btn" onclick="removeFromCart(${item.menuItemId})">−</button>
-                <span class="cart-qty-num">${item.quantity}</span>
-                <button class="cart-qty-btn" onclick="addToCart(${item.menuItemId})">+</button>
-                <button class="cart-remove-btn" onclick="removeCartItem(${item.menuItemId})" title="Remove"><i class="fa-solid fa-trash"></i></button>
+            <div class="cart-item-footer-redesigned">
+                <div class="cart-item-qty-controls-redesigned">
+                    <button class="cart-qty-btn-large" onclick="removeFromCart(${item.menuItemId})">−</button>
+                    <span class="cart-qty-num-large">${item.quantity}</span>
+                    <button class="cart-qty-btn-large" onclick="addToCart(${item.menuItemId})">+</button>
+                </div>
+                <button class="cart-item-delete-btn-redesigned" onclick="removeCartItem(${item.menuItemId})" title="Remove item">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
 
     updateCartPriceBreakdown();
+
+    // Update header item count
+    const totalItems = state.cart.reduce((s, c) => s + c.quantity, 0);
+    const headerCount = document.getElementById('cart-header-count');
+    if (headerCount) headerCount.textContent = `${totalItems} item${totalItems !== 1 ? 's' : ''} selected`;
+
+    // Pre-populate customer name field
+    const nameInput = document.getElementById('checkout-name');
+    if (nameInput) {
+        nameInput.value = state.user ? state.user.name : '';
+    }
 }
 
 function updateCartPriceBreakdown() {
     const itemTotal = state.cart.reduce((s, c) => s + c.price * c.quantity, 0);
+    const totalItems = state.cart.reduce((s, c) => s + c.quantity, 0);
     const deliveryCharge = itemTotal >= 299 ? 0 : 30;
     const gst = itemTotal * 0.05;
     const platformFee = 2;
@@ -895,6 +1314,51 @@ function updateCartPriceBreakdown() {
         document.getElementById('cart-discount-amount').textContent = `-₹${discount.toFixed(0)}`;
     } else discountRow.style.display = 'none';
 
+    // Update ETA and Item Count in Cart summary
+    const countEl = document.getElementById('cart-summary-count');
+    if (countEl) countEl.textContent = `${totalItems} item${totalItems !== 1 ? 's' : ''}`;
+    
+    const etaEl = document.getElementById('cart-summary-eta');
+    if (etaEl) {
+        let maxPrep = 30;
+        state.cart.forEach(c => {
+            const fullItem = findMenuItemById(c.menuItemId);
+            if (fullItem && fullItem.prepTime && fullItem.prepTime > maxPrep) {
+                maxPrep = fullItem.prepTime;
+            }
+        });
+        etaEl.textContent = `Estimated: ${maxPrep} min`;
+    }
+
+    // Update checkout button total
+    const checkoutBtnTotal = document.getElementById('checkout-btn-total');
+    if (checkoutBtnTotal) checkoutBtnTotal.textContent = `₹${grand.toFixed(0)}`;
+
+    // Free delivery tag
+    const deliveryEl = document.getElementById('cart-delivery-charge');
+    if (deliveryEl) {
+        if (deliveryCharge === 0) {
+            deliveryEl.textContent = 'FREE';
+            deliveryEl.classList.add('free');
+        } else {
+            deliveryEl.textContent = `₹${deliveryCharge}`;
+            deliveryEl.classList.remove('free');
+        }
+    }
+
+    // Savings banner
+    const savingsBanner = document.getElementById('cart-savings-banner');
+    const savingsText = document.getElementById('cart-savings-text');
+    const totalSavings = discount + (deliveryCharge === 0 ? 30 : 0);
+    if (savingsBanner && savingsText) {
+        if (totalSavings > 0) {
+            savingsBanner.style.display = 'flex';
+            savingsText.textContent = `You're saving ₹${totalSavings.toFixed(0)} on this order! 🎉`;
+        } else {
+            savingsBanner.style.display = 'none';
+        }
+    }
+
     return grand;
 }
 
@@ -918,11 +1382,12 @@ function applyCoupon() {
 // =====================================================
 function handleCheckoutSubmit(e) {
     e.preventDefault();
+    const name = document.getElementById('checkout-name').value;
     const address = document.getElementById('checkout-address').value;
     const phone = document.getElementById('checkout-phone').value;
 
     if (!state.user) {
-        state.checkoutIntent = { address, phone };
+        state.checkoutIntent = { name, address, phone };
         closeCartDrawer();
         showModal('auth-modal');
         showToast('Sign in to complete your order!', 'info');
@@ -933,6 +1398,7 @@ function handleCheckoutSubmit(e) {
 
 function resumeCheckoutFlow() {
     if (!state.checkoutIntent) return;
+    document.getElementById('checkout-name').value = state.checkoutIntent.name || '';
     document.getElementById('checkout-address').value = state.checkoutIntent.address || '';
     document.getElementById('checkout-phone').value = state.checkoutIntent.phone || '';
     state.checkoutIntent = null;
@@ -1143,8 +1609,10 @@ function renderCustomerOrders(orders) {
                 ${itemsHtml}
                 <div class="order-card-total"><span>Total Paid</span><span>₹${order.totalAmount?.toFixed(0) || '0'}</span></div>
                 <div style="display:flex;gap:0.5rem;margin-top:0.8rem;">
-                    ${['OUT_FOR_DELIVERY','PREPARING'].includes(order.status) ?
+                    ${['OUT_FOR_DELIVERY','PREPARING','PENDING'].includes(order.status) ?
                         `<button class="btn btn-primary btn-sm" onclick="openTrackingModal(${order.id})"><i class="fa-solid fa-location-dot"></i> Track Order</button>` : ''}
+                    ${order.status === 'PENDING' ?
+                        `<button class="btn btn-danger btn-sm" onclick="cancelOrder(${order.id})"><i class="fa-solid fa-xmark"></i> Cancel Order</button>` : ''}
                     <button class="btn btn-outline btn-sm" onclick="showToast('Reorder feature coming soon!', 'info')"><i class="fa-solid fa-rotate-right"></i> Reorder</button>
                 </div>
             </div>
@@ -1155,22 +1623,113 @@ function renderCustomerOrders(orders) {
 async function openTrackingModal(orderId) {
     document.getElementById('track-order-id').textContent = `Order #${orderId}`;
     showModal('tracking-modal');
-    const steps = [
-        { title: 'Order Placed', desc: 'Your order has been received.', icon: 'fa-circle-check', done: true },
-        { title: 'Preparing', desc: 'Restaurant is preparing your food.', icon: 'fa-fire', done: true },
-        { title: 'Picked Up', desc: 'Delivery partner has picked up.', icon: 'fa-motorcycle', current: true },
-        { title: 'Delivered', desc: 'Delivered to your door.', icon: 'fa-house', done: false }
-    ];
-    const timeline = document.getElementById('tracking-timeline-steps');
-    timeline.innerHTML = steps.map((s, i) => `
-        <div class="tracking-step">
-            <div class="step-icon-wrap">
-                <div class="step-icon ${s.done ? 'done' : ''} ${s.current ? 'current' : ''}"><i class="fa-solid ${s.icon}"></i></div>
-                ${i < steps.length - 1 ? `<div class="step-line ${s.done ? 'done' : ''}"></div>` : ''}
-            </div>
-            <div class="step-content"><div class="step-title">${s.title}</div><div class="step-desc">${s.desc}</div></div>
-        </div>
-    `).join('');
+    
+    try {
+        const orderRes = await fetch(`${API_BASE}/orders/${orderId}`);
+        const trackingRes = await fetch(`${API_BASE}/delivery/track/${orderId}`);
+        
+        if (orderRes.ok) {
+            const order = await orderRes.json();
+            const status = order.status;
+            
+            let tracking = {};
+            if (trackingRes.ok) {
+                tracking = await trackingRes.json();
+            }
+            
+            // Driver info
+            document.getElementById('track-driver-name').textContent = tracking.driverName || 'Bob Rider';
+            document.getElementById('track-driver-phone').innerHTML = `<i class="fa-solid fa-phone"></i> ${tracking.driverPhone || '555-123-4567'}`;
+            document.getElementById('track-eta').textContent = `${tracking.estimatedMinutes || 30} Minutes`;
+            
+            let steps = [];
+            
+            if (status === 'CANCELLED') {
+                steps = [
+                    { title: 'Order Placed', desc: 'Your order was received.', icon: 'fa-circle-check', done: true },
+                    { title: 'Cancelled', desc: 'Your order has been cancelled.', icon: 'fa-circle-xmark', current: true, error: true }
+                ];
+            } else {
+                const isPending = status === 'PENDING';
+                const isPreparing = status === 'PREPARING';
+                const isOut = status === 'OUT_FOR_DELIVERY';
+                const isDelivered = status === 'DELIVERED';
+                
+                steps = [
+                    { 
+                        title: 'Order Placed', 
+                        desc: 'Your order has been received.', 
+                        icon: 'fa-circle-check', 
+                        done: true, 
+                        current: isPending 
+                    },
+                    { 
+                        title: 'Preparing', 
+                        desc: 'Restaurant accepted your order.', 
+                        icon: 'fa-utensils', 
+                        done: !isPending, 
+                        current: isPreparing 
+                    },
+                    { 
+                        title: 'Cooking', 
+                        desc: 'Chef is cooking your delicious food.', 
+                        icon: 'fa-fire', 
+                        done: (!isPending && !isPreparing), 
+                        current: isPreparing 
+                    },
+                    { 
+                        title: 'Out for Delivery', 
+                        desc: 'Delivery partner is bringing your food.', 
+                        icon: 'fa-motorcycle', 
+                        done: isDelivered, 
+                        current: isOut 
+                    },
+                    { 
+                        title: 'Delivered', 
+                        desc: 'Enjoy your hot meal!', 
+                        icon: 'fa-house', 
+                        done: isDelivered, 
+                        current: isDelivered 
+                    }
+                ];
+            }
+            
+            const timeline = document.getElementById('tracking-timeline-steps');
+            timeline.innerHTML = steps.map((s, i) => `
+                <div class="tracking-step ${s.error ? 'cancelled' : ''}">
+                    <div class="step-icon-wrap">
+                        <div class="step-icon ${s.done ? 'done' : ''} ${s.current ? 'current' : ''} ${s.error ? 'error' : ''}">
+                            <i class="fa-solid ${s.icon}"></i>
+                        </div>
+                        ${i < steps.length - 1 ? `<div class="step-line ${s.done ? 'done' : ''}"></div>` : ''}
+                    </div>
+                    <div class="step-content">
+                        <div class="step-title">${s.title}</div>
+                        <div class="step-desc">${s.desc}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    } catch (err) {
+        console.error('Error loading tracking info', err);
+    }
+}
+
+async function cancelOrder(orderId) {
+    if (confirm("Are you sure you want to cancel this order?")) {
+        try {
+            const res = await fetch(`${API_BASE}/orders/${orderId}/cancel`, { method: 'POST' });
+            if (res.ok) {
+                showToast('Order cancelled successfully.', 'success');
+                loadCustomerOrders();
+            } else {
+                const errMsg = await res.text();
+                showToast(errMsg || 'Failed to cancel order.', 'error');
+            }
+        } catch {
+            showToast('Error cancelling order.', 'error');
+        }
+    }
 }
 
 // =====================================================
@@ -1343,9 +1902,11 @@ window.setLocation = setLocation;
 window.selectPaymentMethod = selectPaymentMethod;
 window.handlePaymentConfirm = handlePaymentConfirm;
 window.openTrackingModal = openTrackingModal;
+window.cancelOrder = cancelOrder;
 window.updateOrderStatus = updateOrderStatus;
 window.changeProductQty = changeProductQty;
 window.addProductToCartAndClose = addProductToCartAndClose;
 window.buyNowFromDetail = buyNowFromDetail;
 window.switchProductImage = switchProductImage;
 window.showToast = showToast;
+window.handleMenuItemSearch = handleMenuItemSearch;

@@ -28,6 +28,11 @@ public class RestaurantController {
         return restaurantRepository.findAll();
     }
 
+    @GetMapping("/menu-items")
+    public List<MenuItem> getAllMenuItems() {
+        return menuItemRepository.findAll();
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getRestaurantById(@PathVariable Long id) {
         Optional<Restaurant> restaurant = restaurantRepository.findById(id);
