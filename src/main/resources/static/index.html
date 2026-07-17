@@ -1,19 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QuickBite | Order Food Online - Tamil Nadu's Best Food Delivery</title>
-    <meta name="description" content="Order authentic Tamil Nadu food, Biryani, Pizza, Burgers from top restaurants in Coimbatore. Fast delivery from Domino's, KFC, Annapoorna, Junior Kuppanna and more.">
+    <meta name="description"
+        content="Order authentic Tamil Nadu food, Biryani, Pizza, Burgers from top restaurants in Coimbatore. Fast delivery from Domino's, KFC, Annapoorna, Junior Kuppanna and more.">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/index.css?v=20260715">
 </head>
+
 <body>
     <!-- Toast Notifications -->
     <div id="toast-container"></div>
@@ -22,7 +28,8 @@
     <header class="app-header" id="app-header">
         <div class="header-container">
             <!-- Home Button -->
-            <a href="#" class="home-icon-btn" id="home-icon-btn" title="Home" onclick="navigateTo('landing'); event.preventDefault();">
+            <a href="#" class="home-icon-btn" id="home-icon-btn" title="Home"
+                onclick="navigateTo('landing'); event.preventDefault();">
                 <i class="fa-solid fa-house"></i>
             </a>
 
@@ -45,7 +52,8 @@
             <!-- Search Bar (desktop) -->
             <div class="header-search" id="header-search-wrap">
                 <i class="fa-solid fa-magnifying-glass search-icon-hdr"></i>
-                <input type="text" id="header-search-input" class="header-search-input" placeholder="Search for restaurants, cuisines or dishes...">
+                <input type="text" id="header-search-input" class="header-search-input"
+                    placeholder="Search for restaurants, cuisines or dishes...">
                 <div class="search-suggestions-box" id="search-suggestions-box"></div>
             </div>
 
@@ -94,7 +102,8 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label>Your Delivery City</label>
-                    <input type="text" id="location-input" class="form-control" placeholder="e.g. Coimbatore, Chennai, Madurai">
+                    <input type="text" id="location-input" class="form-control"
+                        placeholder="e.g. Coimbatore, Chennai, Madurai">
                 </div>
                 <div class="quick-locations">
                     <span class="quick-loc-badge" onclick="setLocation('Coimbatore, TN')">Coimbatore</span>
@@ -118,7 +127,9 @@
                 <h3><i class="fa-solid fa-heart text-primary"></i> My Favourites</h3>
             </div>
             <div class="modal-body" id="wishlist-items-container">
-                <div class="empty-state"><i class="fa-regular fa-heart" style="font-size:2rem;margin-bottom:1rem;"></i><br>No favourites yet! Heart items you love.</div>
+                <div class="empty-state"><i class="fa-regular fa-heart"
+                        style="font-size:2rem;margin-bottom:1rem;"></i><br>No favourites yet! Heart items you love.
+                </div>
             </div>
         </div>
     </div>
@@ -135,10 +146,12 @@
             <div class="hero-banner">
                 <div class="hero-content">
                     <h1 class="hero-title">Delicious Food,<br><span class="gradient-text">Delivered Fast</span></h1>
-                    <p class="hero-subtitle">Order from 100+ restaurants across Coimbatore. Authentic Tamil Nadu cuisine, Biryani, Pizza, Burgers & more — hot at your door in 30 mins.</p>
+                    <p class="hero-subtitle">Order from 100+ restaurants across Coimbatore. Authentic Tamil Nadu
+                        cuisine, Biryani, Pizza, Burgers & more — hot at your door in 30 mins.</p>
                     <div class="hero-search-bar">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="hero-search-input" class="hero-search-input" placeholder="Search for Biryani, Dosa, Pizza, Burger...">
+                        <input type="text" id="hero-search-input" class="hero-search-input"
+                            placeholder="Search for Biryani, Dosa, Pizza, Burger...">
                         <button class="btn btn-primary" id="hero-search-btn">Search</button>
                     </div>
                     <div class="hero-badges">
@@ -149,7 +162,8 @@
                 </div>
                 <div class="hero-visual">
                     <div class="hero-floating-card">
-                        <img src="https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=300" alt="Biryani" class="hero-food-img">
+                        <img src="https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=300" alt="Biryani"
+                            class="hero-food-img">
                         <div class="hero-card-badge"><i class="fa-solid fa-star"></i> 4.8 · 25 min</div>
                     </div>
                 </div>
@@ -160,18 +174,29 @@
                 <div class="category-strip" id="category-strip">
                     <button class="cat-pill active" data-cat="All" onclick="filterByCategory('All')">🍽️ All</button>
                     <button class="cat-pill" data-cat="Pizza" onclick="filterByCategory('Pizza')">🍕 Pizza</button>
-                    <button class="cat-pill" data-cat="Burgers" onclick="filterByCategory('Burgers')">🍔 Burgers</button>
-                    <button class="cat-pill" data-cat="Fried Chicken" onclick="filterByCategory('Fried Chicken')">🍗 Fried Chicken</button>
-                    <button class="cat-pill" data-cat="Biryani" onclick="filterByCategory('Biryani')">🍚 Biryani</button>
-                    <button class="cat-pill" data-cat="South Indian" onclick="filterByCategory('South Indian')">🥘 South Indian</button>
-                    <button class="cat-pill" data-cat="Tamil Nadu Foods" onclick="filterByCategory('Tamil Nadu Foods')">🌿 Tamil Nadu</button>
-                    <button class="cat-pill" data-cat="Chinese" onclick="filterByCategory('Chinese')">🥡 Chinese</button>
-                    <button class="cat-pill" data-cat="North Indian" onclick="filterByCategory('North Indian')">🫕 North Indian</button>
-                    <button class="cat-pill" data-cat="Sandwiches" onclick="filterByCategory('Sandwiches')">🥪 Sandwiches</button>
-                    <button class="cat-pill" data-cat="Shawarma" onclick="filterByCategory('Shawarma')">🌯 Shawarma</button>
+                    <button class="cat-pill" data-cat="Burgers" onclick="filterByCategory('Burgers')">🍔
+                        Burgers</button>
+                    <button class="cat-pill" data-cat="Fried Chicken" onclick="filterByCategory('Fried Chicken')">🍗
+                        Fried Chicken</button>
+                    <button class="cat-pill" data-cat="Biryani" onclick="filterByCategory('Biryani')">🍚
+                        Biryani</button>
+                    <button class="cat-pill" data-cat="South Indian" onclick="filterByCategory('South Indian')">🥘 South
+                        Indian</button>
+                    <button class="cat-pill" data-cat="Tamil Nadu Foods"
+                        onclick="filterByCategory('Tamil Nadu Foods')">🌿 Tamil Nadu</button>
+                    <button class="cat-pill" data-cat="Chinese" onclick="filterByCategory('Chinese')">🥡
+                        Chinese</button>
+                    <button class="cat-pill" data-cat="North Indian" onclick="filterByCategory('North Indian')">🫕 North
+                        Indian</button>
+                    <button class="cat-pill" data-cat="Sandwiches" onclick="filterByCategory('Sandwiches')">🥪
+                        Sandwiches</button>
+                    <button class="cat-pill" data-cat="Shawarma" onclick="filterByCategory('Shawarma')">🌯
+                        Shawarma</button>
                     <button class="cat-pill" data-cat="Rolls" onclick="filterByCategory('Rolls')">🌮 Rolls</button>
-                    <button class="cat-pill" data-cat="Ice Cream" onclick="filterByCategory('Ice Cream')">🍦 Ice Cream</button>
-                    <button class="cat-pill" data-cat="Desserts" onclick="filterByCategory('Desserts')">🍮 Desserts</button>
+                    <button class="cat-pill" data-cat="Ice Cream" onclick="filterByCategory('Ice Cream')">🍦 Ice
+                        Cream</button>
+                    <button class="cat-pill" data-cat="Desserts" onclick="filterByCategory('Desserts')">🍮
+                        Desserts</button>
                     <button class="cat-pill" data-cat="Drinks" onclick="filterByCategory('Drinks')">🥤 Drinks</button>
                 </div>
 
@@ -194,13 +219,20 @@
                 <!-- Filter Bar -->
                 <div class="filter-bar">
                     <span class="filter-label">Filters:</span>
-                    <button class="filter-chip" id="filter-veg" onclick="toggleFilter('veg')"><i class="fa-solid fa-leaf"></i> Veg</button>
-                    <button class="filter-chip" id="filter-nonveg" onclick="toggleFilter('nonveg')"><i class="fa-solid fa-drumstick-bite"></i> Non-Veg</button>
-                    <button class="filter-chip" id="filter-rating" onclick="toggleFilter('rating')"><i class="fa-solid fa-star"></i> 4.0+ Rated</button>
-                    <button class="filter-chip" id="filter-fast" onclick="toggleFilter('fast')"><i class="fa-solid fa-bolt"></i> Fast Delivery</button>
-                    <button class="filter-chip" id="filter-offers" onclick="toggleFilter('offers')"><i class="fa-solid fa-tag"></i> Offers</button>
-                    <button class="filter-chip" id="filter-popular" onclick="sortRestaurants('popular')"><i class="fa-solid fa-fire"></i> Popular</button>
-                    <button class="filter-chip" id="filter-price-low" onclick="sortRestaurants('price')"><i class="fa-solid fa-arrow-down-wide-short"></i> Price: Low</button>
+                    <button class="filter-chip" id="filter-veg" onclick="toggleFilter('veg')"><i
+                            class="fa-solid fa-leaf"></i> Veg</button>
+                    <button class="filter-chip" id="filter-nonveg" onclick="toggleFilter('nonveg')"><i
+                            class="fa-solid fa-drumstick-bite"></i> Non-Veg</button>
+                    <button class="filter-chip" id="filter-rating" onclick="toggleFilter('rating')"><i
+                            class="fa-solid fa-star"></i> 4.0+ Rated</button>
+                    <button class="filter-chip" id="filter-fast" onclick="toggleFilter('fast')"><i
+                            class="fa-solid fa-bolt"></i> Fast Delivery</button>
+                    <button class="filter-chip" id="filter-offers" onclick="toggleFilter('offers')"><i
+                            class="fa-solid fa-tag"></i> Offers</button>
+                    <button class="filter-chip" id="filter-popular" onclick="sortRestaurants('popular')"><i
+                            class="fa-solid fa-fire"></i> Popular</button>
+                    <button class="filter-chip" id="filter-price-low" onclick="sortRestaurants('price')"><i
+                            class="fa-solid fa-arrow-down-wide-short"></i> Price: Low</button>
                 </div>
 
                 <!-- Restaurants Section -->
@@ -226,36 +258,53 @@
                 <div class="info-grid container">
                     <div class="info-brand">
                         <h3><i class="fa-solid fa-bolt text-primary"></i> Quick<span>Bite</span></h3>
-                        <p>India's premium food discovery and delivery platform, connecting you to 100+ restaurants across Tamil Nadu with real-time tracking and seamless payments.</p>
+                        <p>India's premium food discovery and delivery platform, connecting you to 100+ restaurants
+                            across Tamil Nadu with real-time tracking and seamless payments.</p>
                         <h4>Our Mission</h4>
-                        <p style="font-style:italic;">"To preserve and promote regional culinary heritage while providing state-of-the-art logistics and a seamless ordering experience."</p>
+                        <p style="font-style:italic;">"To preserve and promote regional culinary heritage while
+                            providing state-of-the-art logistics and a seamless ordering experience."</p>
                     </div>
                     <div>
-                        <h3 class="section-title" style="text-align:left;margin-bottom:1.5rem;font-size:1.6rem;">Why Choose QuickBite</h3>
+                        <h3 class="section-title" style="text-align:left;margin-bottom:1.5rem;font-size:1.6rem;">Why
+                            Choose QuickBite</h3>
                         <div class="why-choose-grid">
                             <div class="why-card">
                                 <div class="why-icon"><i class="fa-solid fa-truck-fast"></i></div>
-                                <div class="why-info"><h4>Fast Delivery</h4><p>Hot delivery under 30 minutes with live GPS tracking.</p></div>
+                                <div class="why-info">
+                                    <h4>Fast Delivery</h4>
+                                    <p>Hot delivery under 30 minutes with live GPS tracking.</p>
+                                </div>
                             </div>
                             <div class="why-card">
                                 <div class="why-icon"><i class="fa-solid fa-shield-halved"></i></div>
-                                <div class="why-info"><h4>Fresh & Hygienic</h4><p>Strict kitchen quality audits and safety-certified packaging.</p></div>
+                                <div class="why-info">
+                                    <h4>Fresh & Hygienic</h4>
+                                    <p>Strict kitchen quality audits and safety-certified packaging.</p>
+                                </div>
                             </div>
                             <div class="why-card">
                                 <div class="why-icon"><i class="fa-solid fa-headset"></i></div>
-                                <div class="why-info"><h4>24/7 Support</h4><p>Our team is always ready to resolve any order issue.</p></div>
+                                <div class="why-info">
+                                    <h4>24/7 Support</h4>
+                                    <p>Our team is always ready to resolve any order issue.</p>
+                                </div>
                             </div>
                             <div class="why-card">
                                 <div class="why-icon"><i class="fa-solid fa-credit-card"></i></div>
-                                <div class="why-info"><h4>Secure Payments</h4><p>Safe UPI, Card and COD options with zero fraud risk.</p></div>
+                                <div class="why-info">
+                                    <h4>Secure Payments</h4>
+                                    <p>Safe UPI, Card and COD options with zero fraud risk.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="info-contact">
                         <h4>Contact Us</h4>
-                        <div class="contact-item"><i class="fa-solid fa-location-dot"></i><span>101 Avinashi Rd, Coimbatore, TN 641018</span></div>
+                        <div class="contact-item"><i class="fa-solid fa-location-dot"></i><span>101 Avinashi Rd,
+                                Coimbatore, TN 641018</span></div>
                         <div class="contact-item"><i class="fa-solid fa-phone"></i><span>+91 98765 43210</span></div>
-                        <div class="contact-item"><i class="fa-solid fa-envelope"></i><span>quickbite@gmail.com</span></div>
+                        <div class="contact-item"><i class="fa-solid fa-envelope"></i><span>quickbite@gmail.com</span>
+                        </div>
                         <div class="legal-links">
                             <a href="#" onclick="showInfoModal('privacy')">Privacy Policy</a>
                             <span>•</span>
@@ -279,7 +328,8 @@
                             <a href="#" class="social-icon" title="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
                             <a href="#" class="social-icon" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
                             <a href="#" class="social-icon" title="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
-                            <a href="#" class="social-icon" title="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                            <a href="#" class="social-icon" title="LinkedIn"><i
+                                    class="fa-brands fa-linkedin-in"></i></a>
                             <a href="#" class="social-icon" title="YouTube"><i class="fa-brands fa-youtube"></i></a>
                         </div>
                     </div>
@@ -324,7 +374,8 @@
                         <div class="customer-search-wrap">
                             <div class="search-box">
                                 <i class="fa-solid fa-magnifying-glass"></i>
-                                <input type="text" id="restaurant-search" class="search-input" placeholder="Search restaurants or dishes...">
+                                <input type="text" id="restaurant-search" class="search-input"
+                                    placeholder="Search restaurants or dishes...">
                                 <div class="search-suggestions-box" id="customer-suggestions-box"></div>
                             </div>
                         </div>
@@ -332,8 +383,10 @@
 
                     <!-- Tab Nav -->
                     <div class="tab-nav">
-                        <button class="tab-btn active" id="tab-restaurants"><i class="fa-solid fa-utensils"></i> Restaurants</button>
-                        <button class="tab-btn" id="tab-orders"><i class="fa-solid fa-receipt"></i> My Orders <span class="badge" id="active-orders-count">0</span></button>
+                        <button class="tab-btn active" id="tab-restaurants"><i class="fa-solid fa-utensils"></i>
+                            Restaurants</button>
+                        <button class="tab-btn" id="tab-orders"><i class="fa-solid fa-receipt"></i> My Orders <span
+                                class="badge" id="active-orders-count">0</span></button>
                     </div>
                 </div>
             </div>
@@ -341,24 +394,38 @@
             <div class="container" style="padding-top: 1.5rem;">
                 <!-- Category Strip -->
                 <div class="category-strip" id="customer-category-strip">
-                    <button class="cat-pill active" data-cat="All" onclick="customerFilterByCategory('All')">🍽️ All</button>
-                    <button class="cat-pill" data-cat="Tamil Nadu Foods" onclick="customerFilterByCategory('Tamil Nadu Foods')">🌿 Tamil Nadu</button>
-                    <button class="cat-pill" data-cat="Biryani" onclick="customerFilterByCategory('Biryani')">🍚 Biryani</button>
-                    <button class="cat-pill" data-cat="Pizza" onclick="customerFilterByCategory('Pizza')">🍕 Pizza</button>
-                    <button class="cat-pill" data-cat="Burgers" onclick="customerFilterByCategory('Burgers')">🍔 Burgers</button>
-                    <button class="cat-pill" data-cat="Fried Chicken" onclick="customerFilterByCategory('Fried Chicken')">🍗 Fried Chicken</button>
-                    <button class="cat-pill" data-cat="Chinese" onclick="customerFilterByCategory('Chinese')">🥡 Chinese</button>
-                    <button class="cat-pill" data-cat="Desserts" onclick="customerFilterByCategory('Desserts')">🍮 Desserts</button>
-                    <button class="cat-pill" data-cat="Drinks" onclick="customerFilterByCategory('Drinks')">🥤 Drinks</button>
+                    <button class="cat-pill active" data-cat="All" onclick="customerFilterByCategory('All')">🍽️
+                        All</button>
+                    <button class="cat-pill" data-cat="Tamil Nadu Foods"
+                        onclick="customerFilterByCategory('Tamil Nadu Foods')">🌿 Tamil Nadu</button>
+                    <button class="cat-pill" data-cat="Biryani" onclick="customerFilterByCategory('Biryani')">🍚
+                        Biryani</button>
+                    <button class="cat-pill" data-cat="Pizza" onclick="customerFilterByCategory('Pizza')">🍕
+                        Pizza</button>
+                    <button class="cat-pill" data-cat="Burgers" onclick="customerFilterByCategory('Burgers')">🍔
+                        Burgers</button>
+                    <button class="cat-pill" data-cat="Fried Chicken"
+                        onclick="customerFilterByCategory('Fried Chicken')">🍗 Fried Chicken</button>
+                    <button class="cat-pill" data-cat="Chinese" onclick="customerFilterByCategory('Chinese')">🥡
+                        Chinese</button>
+                    <button class="cat-pill" data-cat="Desserts" onclick="customerFilterByCategory('Desserts')">🍮
+                        Desserts</button>
+                    <button class="cat-pill" data-cat="Drinks" onclick="customerFilterByCategory('Drinks')">🥤
+                        Drinks</button>
                 </div>
 
                 <!-- Filters -->
                 <div class="filter-bar">
-                    <button class="filter-chip" id="c-filter-veg" onclick="toggleCustomerFilter('veg')"><i class="fa-solid fa-leaf"></i> Veg</button>
-                    <button class="filter-chip" id="c-filter-nonveg" onclick="toggleCustomerFilter('nonveg')"><i class="fa-solid fa-drumstick-bite"></i> Non-Veg</button>
-                    <button class="filter-chip" id="c-filter-rating" onclick="toggleCustomerFilter('rating')"><i class="fa-solid fa-star"></i> 4.0+ Rated</button>
-                    <button class="filter-chip" id="c-filter-fast" onclick="toggleCustomerFilter('fast')"><i class="fa-solid fa-bolt"></i> Fast Delivery</button>
-                    <button class="filter-chip" id="c-filter-offers" onclick="toggleCustomerFilter('offers')"><i class="fa-solid fa-tag"></i> Has Offers</button>
+                    <button class="filter-chip" id="c-filter-veg" onclick="toggleCustomerFilter('veg')"><i
+                            class="fa-solid fa-leaf"></i> Veg</button>
+                    <button class="filter-chip" id="c-filter-nonveg" onclick="toggleCustomerFilter('nonveg')"><i
+                            class="fa-solid fa-drumstick-bite"></i> Non-Veg</button>
+                    <button class="filter-chip" id="c-filter-rating" onclick="toggleCustomerFilter('rating')"><i
+                            class="fa-solid fa-star"></i> 4.0+ Rated</button>
+                    <button class="filter-chip" id="c-filter-fast" onclick="toggleCustomerFilter('fast')"><i
+                            class="fa-solid fa-bolt"></i> Fast Delivery</button>
+                    <button class="filter-chip" id="c-filter-offers" onclick="toggleCustomerFilter('offers')"><i
+                            class="fa-solid fa-tag"></i> Has Offers</button>
                 </div>
 
                 <!-- Restaurant Grid Panel -->
@@ -393,12 +460,16 @@
                             <h2 id="menu-restaurant-name">Restaurant Name</h2>
                             <p id="menu-restaurant-cuisine" class="text-muted"></p>
                             <div class="restaurant-meta-row">
-                                <span class="meta-badge"><i class="fa-solid fa-star text-warning"></i> <span id="menu-restaurant-rating">4.5</span></span>
-                                <span class="meta-badge"><i class="fa-solid fa-clock"></i> <span id="menu-restaurant-time">30</span> min</span>
-                                <span class="meta-badge"><i class="fa-solid fa-truck-fast"></i> ₹<span id="menu-restaurant-fee">20</span> delivery</span>
+                                <span class="meta-badge"><i class="fa-solid fa-star text-warning"></i> <span
+                                        id="menu-restaurant-rating">4.5</span></span>
+                                <span class="meta-badge"><i class="fa-solid fa-clock"></i> <span
+                                        id="menu-restaurant-time">30</span> min</span>
+                                <span class="meta-badge"><i class="fa-solid fa-truck-fast"></i> ₹<span
+                                        id="menu-restaurant-fee">20</span> delivery</span>
                                 <span class="meta-badge offer-badge-small" id="menu-restaurant-offer"></span>
                             </div>
-                            <p class="text-muted" style="margin-top:.3rem;font-size:.85rem;" id="menu-restaurant-address"></p>
+                            <p class="text-muted" style="margin-top:.3rem;font-size:.85rem;"
+                                id="menu-restaurant-address"></p>
                         </div>
                     </div>
                 </div>
@@ -406,13 +477,18 @@
 
             <div class="container" style="padding-top: 1.5rem;">
                 <!-- Menu Category & Search Filters -->
-                <div class="menu-filters-bar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
+                <div class="menu-filters-bar"
+                    style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
                     <div class="menu-category-nav" id="menu-category-nav" style="margin-bottom:0;">
-                        <button class="cat-pill active" data-cat="All" onclick="filterMenuItems('All')">All Items</button>
+                        <button class="cat-pill active" data-cat="All" onclick="filterMenuItems('All')">All
+                            Items</button>
                     </div>
                     <div class="menu-search-box" style="position:relative; max-width:300px; width:100%;">
-                        <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); color:var(--text-muted);"></i>
-                        <input type="text" id="menu-item-search" placeholder="Search in menu..." oninput="handleMenuItemSearch()" style="width:100%; padding:0.6rem 1rem 0.6rem 2.5rem; background:var(--bg-input); border:1.5px solid var(--border); border-radius:var(--radius-full); font-size:0.9rem; outline:none; transition:var(--transition);">
+                        <i class="fa-solid fa-magnifying-glass"
+                            style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); color:var(--text-muted);"></i>
+                        <input type="text" id="menu-item-search" placeholder="Search in menu..."
+                            oninput="handleMenuItemSearch()"
+                            style="width:100%; padding:0.6rem 1rem 0.6rem 2.5rem; background:var(--bg-input); border:1.5px solid var(--border); border-radius:var(--radius-full); font-size:0.9rem; outline:none; transition:var(--transition);">
                     </div>
                 </div>
 
@@ -426,11 +502,15 @@
                     <div class="menu-cart-sidebar" id="menu-cart-sidebar">
                         <div class="sidebar-cart-card">
                             <h4><i class="fa-solid fa-bag-shopping text-primary"></i> Your Cart</h4>
-                            <div id="sidebar-cart-items"><p class="text-muted" style="font-size:.85rem;">Add items to get started</p></div>
+                            <div id="sidebar-cart-items">
+                                <p class="text-muted" style="font-size:.85rem;">Add items to get started</p>
+                            </div>
                             <div id="sidebar-cart-total" style="display:none;">
                                 <hr>
-                                <div class="cart-subtotal-row"><span>Subtotal</span><span id="sidebar-subtotal">₹0</span></div>
-                                <button class="btn btn-primary btn-full" onclick="openCartDrawer()">View Cart & Checkout</button>
+                                <div class="cart-subtotal-row"><span>Subtotal</span><span
+                                        id="sidebar-subtotal">₹0</span></div>
+                                <button class="btn btn-primary btn-full" onclick="openCartDrawer()">View Cart &
+                                    Checkout</button>
                             </div>
                         </div>
                     </div>
@@ -451,7 +531,8 @@
                     <select id="owner-restaurant-select" class="form-control" style="max-width:260px;"></select>
                 </div>
                 <div class="tab-nav">
-                    <button class="tab-btn active" id="tab-owner-orders"><i class="fa-solid fa-receipt"></i> Live Orders</button>
+                    <button class="tab-btn active" id="tab-owner-orders"><i class="fa-solid fa-receipt"></i> Live
+                        Orders</button>
                     <button class="tab-btn" id="tab-owner-menu"><i class="fa-solid fa-utensils"></i> Menu Items</button>
                 </div>
                 <div id="panel-owner-orders" class="dashboard-panel">
@@ -462,24 +543,38 @@
                         <h3 style="margin-bottom:1.5rem;">Add New Menu Item</h3>
                         <form id="add-menu-form">
                             <div class="form-row">
-                                <div class="form-group col"><label>Item Name</label><input type="text" id="new-item-name" class="form-control" required></div>
-                                <div class="form-group col"><label>Price (₹)</label><input type="number" id="new-item-price" class="form-control" required></div>
+                                <div class="form-group col"><label>Item Name</label><input type="text"
+                                        id="new-item-name" class="form-control" required></div>
+                                <div class="form-group col"><label>Price (₹)</label><input type="number"
+                                        id="new-item-price" class="form-control" required></div>
                             </div>
                             <div class="form-row">
                                 <div class="form-group col"><label>Category</label>
                                     <select id="new-item-category" class="form-control">
-                                        <option>Tamil Nadu Foods</option><option>Pizza</option><option>Burgers</option><option>Biryani</option>
-                                        <option>Fried Chicken</option><option>Chinese</option><option>Desserts</option><option>Drinks</option>
+                                        <option>Tamil Nadu Foods</option>
+                                        <option>Pizza</option>
+                                        <option>Burgers</option>
+                                        <option>Biryani</option>
+                                        <option>Fried Chicken</option>
+                                        <option>Chinese</option>
+                                        <option>Desserts</option>
+                                        <option>Drinks</option>
                                     </select>
                                 </div>
-                                <div class="form-group col"><label>Region</label><input type="text" id="new-item-region" class="form-control" placeholder="e.g. Chettinad"></div>
+                                <div class="form-group col"><label>Region</label><input type="text" id="new-item-region"
+                                        class="form-control" placeholder="e.g. Chettinad"></div>
                             </div>
-                            <div class="form-group"><label>Description</label><input type="text" id="new-item-description" class="form-control"></div>
+                            <div class="form-group"><label>Description</label><input type="text"
+                                    id="new-item-description" class="form-control"></div>
                             <div class="form-row">
                                 <div class="form-group col"><label>Is Veg?</label>
-                                    <select id="new-item-veg" class="form-control"><option value="true">Yes (Veg)</option><option value="false">No (Non-Veg)</option></select>
+                                    <select id="new-item-veg" class="form-control">
+                                        <option value="true">Yes (Veg)</option>
+                                        <option value="false">No (Non-Veg)</option>
+                                    </select>
                                 </div>
-                                <div class="form-group col"><label>Image URL</label><input type="url" id="new-item-image" class="form-control"></div>
+                                <div class="form-group col"><label>Image URL</label><input type="url"
+                                        id="new-item-image" class="form-control"></div>
                             </div>
                             <button type="submit" class="btn btn-primary">Add Item</button>
                         </form>
@@ -575,15 +670,19 @@
                     <div class="coupon-row">
                         <div class="coupon-input-wrap">
                             <i class="fa-solid fa-tag coupon-icon"></i>
-                            <input type="text" id="coupon-code-input" class="coupon-input" placeholder="Enter coupon code (e.g. WELCOME50)">
+                            <input type="text" id="coupon-code-input" class="coupon-input"
+                                placeholder="Enter coupon code (e.g. WELCOME50)">
                         </div>
                         <button class="btn btn-outline btn-sm" id="apply-coupon-btn">Apply</button>
                     </div>
                     <div class="coupon-message" id="coupon-message"></div>
                     <div class="coupon-chips">
-                        <span class="coupon-chip" onclick="document.getElementById('coupon-code-input').value='WELCOME50'">WELCOME50</span>
-                        <span class="coupon-chip" onclick="document.getElementById('coupon-code-input').value='SAVEMORE'">SAVEMORE</span>
-                        <span class="coupon-chip" onclick="document.getElementById('coupon-code-input').value='FLAT20'">FLAT20</span>
+                        <span class="coupon-chip"
+                            onclick="document.getElementById('coupon-code-input').value='WELCOME50'">WELCOME50</span>
+                        <span class="coupon-chip"
+                            onclick="document.getElementById('coupon-code-input').value='SAVEMORE'">SAVEMORE</span>
+                        <span class="coupon-chip"
+                            onclick="document.getElementById('coupon-code-input').value='FLAT20'">FLAT20</span>
                     </div>
                 </div>
 
@@ -593,7 +692,8 @@
                         <i class="fa-solid fa-receipt"></i> Order Summary
                     </div>
                     <div class="cart-summary-meta-row">
-                        <span><i class="fa-solid fa-clock"></i> <span id="cart-summary-eta">Estimated: -- min</span></span>
+                        <span><i class="fa-solid fa-clock"></i> <span id="cart-summary-eta">Estimated: --
+                                min</span></span>
                         <span><i class="fa-solid fa-box"></i> <span id="cart-summary-count">0 items</span></span>
                     </div>
                     <div class="cart-price-breakdown">
@@ -635,15 +735,18 @@
                     </div>
                     <div class="form-group">
                         <label>Customer Name</label>
-                        <input type="text" id="checkout-name" class="form-control" placeholder="Enter your name" required>
+                        <input type="text" id="checkout-name" class="form-control" placeholder="Enter your name"
+                            required>
                     </div>
                     <div class="form-group">
                         <label>Delivery Address</label>
-                        <input type="text" id="checkout-address" class="form-control" placeholder="House/Flat no., Street, Area, City" required>
+                        <input type="text" id="checkout-address" class="form-control"
+                            placeholder="House/Flat no., Street, Area, City" required>
                     </div>
                     <div class="form-group">
                         <label>Contact Number</label>
-                        <input type="tel" id="checkout-phone" class="form-control" placeholder="10-digit mobile number" required>
+                        <input type="tel" id="checkout-phone" class="form-control" placeholder="10-digit mobile number"
+                            required>
                     </div>
                     <button type="submit" class="cart-checkout-btn">
                         <span class="checkout-btn-left">
@@ -714,12 +817,16 @@
 
                 <!-- Card Panel -->
                 <div id="panel-card" class="payment-panel" style="display:none;">
-                    <div class="form-group"><label>Card Number</label><input type="text" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19"></div>
+                    <div class="form-group"><label>Card Number</label><input type="text" class="form-control"
+                            placeholder="1234 5678 9012 3456" maxlength="19"></div>
                     <div class="form-row">
-                        <div class="form-group col"><label>Expiry</label><input type="text" class="form-control" placeholder="MM/YY" maxlength="5"></div>
-                        <div class="form-group col"><label>CVV</label><input type="text" class="form-control" placeholder="123" maxlength="3"></div>
+                        <div class="form-group col"><label>Expiry</label><input type="text" class="form-control"
+                                placeholder="MM/YY" maxlength="5"></div>
+                        <div class="form-group col"><label>CVV</label><input type="text" class="form-control"
+                                placeholder="123" maxlength="3"></div>
                     </div>
-                    <div class="form-group"><label>Name on Card</label><input type="text" class="form-control" placeholder="John Doe"></div>
+                    <div class="form-group"><label>Name on Card</label><input type="text" class="form-control"
+                            placeholder="John Doe"></div>
                 </div>
 
                 <!-- COD Panel -->
@@ -754,9 +861,11 @@
                             <label for="login-phone-number">Mobile Number</label>
                             <div class="phone-input-wrap">
                                 <span class="phone-prefix">+91</span>
-                                <input type="tel" id="login-phone-number" class="form-control phone-input-inner" placeholder="10-digit mobile number" maxlength="10" required>
+                                <input type="tel" id="login-phone-number" class="form-control phone-input-inner"
+                                    placeholder="10-digit mobile number" maxlength="10" required>
                             </div>
-                            <span class="phone-helper-text">Demo: 1234567890 (customer) · 9876543210 (owner) · 5551234567 (driver)</span>
+                            <span class="phone-helper-text">Demo: 1234567890 (customer) · 9876543210 (owner) ·
+                                5551234567 (driver)</span>
                         </div>
                         <button type="submit" class="btn btn-primary btn-full" id="send-otp-btn">
                             <i class="fa-solid fa-paper-plane"></i> Get OTP
@@ -764,7 +873,8 @@
                     </div>
                     <!-- Stage 2: OTP Verify -->
                     <div id="otp-stage-verify" style="display:none;">
-                        <div class="otp-sent-label" id="otp-sent-label">OTP sent to +91 <strong id="otp-sent-number"></strong></div>
+                        <div class="otp-sent-label" id="otp-sent-label">OTP sent to +91 <strong
+                                id="otp-sent-number"></strong></div>
                         <div class="form-group">
                             <label>Enter OTP</label>
                             <div class="otp-boxes" id="otp-boxes">
@@ -775,12 +885,14 @@
                                 <input type="text" class="otp-box" maxlength="1" id="otp-4">
                                 <input type="text" class="otp-box" maxlength="1" id="otp-5">
                             </div>
-                            <span class="phone-helper-text" id="simulated-otp-display">Simulated OTP: <strong>123456</strong></span>
+                            <span class="phone-helper-text" id="simulated-otp-display">Simulated OTP:
+                                <strong>123456</strong></span>
                         </div>
                         <button type="button" class="btn btn-primary btn-full" id="verify-otp-btn">
                             <i class="fa-solid fa-circle-check"></i> Verify & Login
                         </button>
-                        <p class="auth-toggle-prompt"><a href="#" id="change-phone-btn">Change Number</a> · <a href="#" id="resend-otp-btn">Resend OTP</a></p>
+                        <p class="auth-toggle-prompt"><a href="#" id="change-phone-btn">Change Number</a> · <a href="#"
+                                id="resend-otp-btn">Resend OTP</a></p>
                     </div>
                 </form>
             </div>
@@ -793,7 +905,8 @@
             <button class="modal-close-btn" id="tracking-close-btn"><i class="fa-solid fa-xmark"></i></button>
             <div class="modal-header">
                 <h3>Live Delivery Tracking</h3>
-                <span class="status-badge status-out_for_delivery" id="track-order-id" style="margin-top:.5rem;display:inline-block;">Order #12345</span>
+                <span class="status-badge status-out_for_delivery" id="track-order-id"
+                    style="margin-top:.5rem;display:inline-block;">Order #12345</span>
             </div>
             <div class="modal-body">
                 <div class="tracking-grid">
@@ -842,4 +955,5 @@
     <!-- Custom JS -->
     <script src="js/app.js?v=20260715"></script>
 </body>
+
 </html>
